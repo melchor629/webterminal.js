@@ -7,10 +7,9 @@ It's inspired in the bash environment, to entertain it, as in this 404 example: 
 ## Basic usage
 It's easy to use. You, firstly, need a html file with the basics `<head> <body>` and create a *<div>* with a class identifier. Ex.:
 ```html
-<div class="console">
-</div>
+<div class="console"></div>
 ```
-Before the *</body>* tag, add he needed scripts. The scripts are [jQuery](http://jquery.com) and, of course, webterminal.js
+Before the `</body>` tag, add he needed scripts. The scripts are [jQuery](http://jquery.com) and, of course, webterminal.js
 ```html
 <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
 <script src="webterminal.js"></script>
