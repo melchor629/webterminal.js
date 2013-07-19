@@ -12,7 +12,7 @@ It's easy to use. You, firstly, need a html file with the basics `<head> <body>`
 Also you can put a initial message in the div, very recomended:
 ```html
 <div class="console">Press any key to continue...<span id="l"></span></div>
-``
+```
 Before the `</body>` tag, add he needed scripts. The scripts are [jQuery](http://jquery.com) and, of course, webterminal.js
 ```html
 <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
