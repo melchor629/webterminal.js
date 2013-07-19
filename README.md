@@ -24,6 +24,26 @@ $(".console").webconsole();
 ```
 and that's all :D
 
+### Styling the console
+If you want a stylished console, here are some tricks to make it pretty:
+In the main `<div/>`, set the style like that, for example:
+```css
+.console {
+    width: 600px;
+    height: 333px;
+    text-align: justify;
+    opacity: 0;
+    overflow-y: auto;
+}
+.consola-line {
+    width: 600px;
+}
+```
+I recommand to put this CSS code in the page where you want to use the console for better looking. Explain:
+
+`.console` is the main div used in the basic usage. I set a width and a height, and then I justify the text to have the appearence to a real console. Opacity set to 0 to allow the script to fade in the console at start. And finally, overflow is necessary.
+`.consola-line` is a div created by the script. You have to set the width manually (for now…).
+
 ## Usage
 ### Extend commands
 To extend the terminal commands, you need first to create them. See the example:
@@ -78,3 +98,8 @@ $(".console").webconsole(commands, {}, help);
 In every help you have to make an array with 2 strings. The very short description, and the long description.
 Type `help` in the console and you will see the commands with its help. If you type `help salute` you will see the long description.
 You may have noticed that the second parameter is an empty array, again, we don't want to create new environment variables.
+
+## TODO List
+- [ ] Auto-detect the width of the console (_the selected `<div/>`_)
+- [ ] If is pressed the key UP or DOWN, write the before commands
+- [ ] Create more commands
