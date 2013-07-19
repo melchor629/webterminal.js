@@ -133,13 +133,21 @@
         "PWD": document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)
     },
     shell = {
-        "help": function() {
-            print("non-GNU web-bash, version " + version + " (" + window.navigator.userAgent + ")");
-            print("These shell commands are defined internally. Type `help` to see this list.");
-            print("Type `help name` to find out more about the function `name`.");
-            $.each(help, function(a, b){
-                print("&nbsp;" + a + " " + b);
-            })
+        "help": function(c) {
+            if (c[1] == undefined) {
+                print("webterminal, version " + version + " (" + window.navigator.userAgent + ")");
+                print("These shell commands are defined internally or externally. Type `help` to see this list.");
+                print("Type `help name` to find out more about the function `name`.");
+                print("Maybe some commands doesn't show up in this help, it depends on the web programmer.");
+                $.each(help, function(a, b){
+                    print("&nbsp;" + a + " " + b[0]);
+                })
+            } else if (c[1] != undefined && help[c[1]] != undefined) {
+                b = help[c[1]];
+                print(c[1] + ": " + b[0]);
+                print(b[1]);
+            } else if(help[c[1]] == undefined)
+                print("-bash: help: no help topics match `" + c[1] + "`.");
         },
         "echo": function(c) {
             var str = "";
@@ -173,11 +181,11 @@
         }
     },
     help = {
-        "help": 'Shows this help',
-        "echo": '[arg ...] prints the argument',
-        "env": 'prints all the environment variables',
-        "export": 'sets a variable',
-        "reload": 'reload the console'
+        "help": ['Shows this help'],
+        "echo": ['[arg ...] prints the argument'],
+        "env": ['prints all the environment variables'],
+        "export": ['sets a variable'],
+        "reload": ['reload the console']
     },
     intro = 13,
     append = function(char) {
@@ -216,6 +224,7 @@
     Plugin.prototype = {
         init: function() {
             this._showTerm();
+            this.enLaBusquedaDelTextoPerdido();
             this.console();
         },
         _showTerm: function() {
@@ -223,6 +232,10 @@
         },
         _hideTerm: function(c) {
             $(this.element).delay(333).animate({'opacity':0}, 1111, c);
+        },
+        enLaBusquedaDelTextoPerdido: function() {
+            if($(this.element).text().length == 0)
+                $(this.element).append('<div class="consola"></div>').find(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ");
         },
         console: function() {
             //Consola
