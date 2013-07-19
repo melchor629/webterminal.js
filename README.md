@@ -72,7 +72,6 @@ var help = {
 };
 ```
 And finally, create the console:
-```
 ```javascript
 $(".console").webconsole(commands, {}, help);
 ```
