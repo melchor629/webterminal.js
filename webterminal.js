@@ -208,6 +208,8 @@
     };
     //El loop del efecto del cursor de texto
     (loop = function() {
+        if($('span#l').length == 0)
+            $('body').append('<span id="l" style="display:none"></span>');
         $('span#l').delay(600).animate({'opacity': 0}, 10)
                    .delay(600).animate({'opacity': 1}, 10, loop);
     })();
