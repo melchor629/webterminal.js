@@ -2,7 +2,7 @@ webterminal.js
 ==============
 
 A terminal emulator for the web.
-It's inspired in the bash environment, to entertain it, as in this 404 example: [SrRBR007 404' error page](http://srrbr007.tk/melchor629/404.htm).
+It's inspired in the bash environment, to entertain it, as in this 404 example: [SrRBR007 404' error page](http://srrbr007.tk/melchor629/404.htm). If you clone the repository, you can open the *webterminal.html* and prove the project in a Mac-like terminal :P.
 
 ## Basic usage
 It's easy to use. You, firstly, need a html file with the basics `<head> <body>` and create a `<div>` with a class identifier. Ex.:

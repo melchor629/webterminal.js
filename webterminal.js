@@ -7,7 +7,7 @@
  * http://markdalgleish.mit-license.org
  */
 
- ;(function($, window, document, undefined) {
+;(function($, window, document, undefined) {
     var
     version = 'v0.1',
     pluginName = 'webterminal',
@@ -134,25 +134,25 @@
     },
     shell = {
         "help": function(c) {
-            if (c[1] == undefined) {
+            if (c[1] === undefined) {
                 print("webterminal, version " + version + " (" + window.navigator.userAgent + ")");
                 print("These shell commands are defined internally or externally. Type `help` to see this list.");
                 print("Type `help name` to find out more about the function `name`.");
                 print("Maybe some commands doesn't show up in this help, it depends on the web programmer.");
                 $.each(help, function(a, b){
                     print("&nbsp;" + a + " " + b[0]);
-                })
-            } else if (c[1] != undefined && help[c[1]] != undefined) {
+                });
+            } else if (c[1] !== undefined && help[c[1]] !== undefined) {
                 b = help[c[1]];
                 print(c[1] + ": " + b[0]);
                 print(b[1]);
-            } else if(help[c[1]] == undefined)
+            } else if(help[c[1]] === undefined)
                 print("-bash: help: no help topics match `" + c[1] + "`.");
         },
         "echo": function(c) {
             var str = "";
             $.each(c, function(a, b) {
-                if(a != 0) {
+                if(a !== 0) {
                     str += " " + b;
                 }
             });
@@ -169,12 +169,12 @@
             print(kv[0] + " = " + kv[1]);
         },
         "reload": function() {
-            $('.interior').delay(333).animate({'opacity':0}, 1111, function(){
-                window.location = window.location
-            })
+            $(element).delay(333).animate({'opacity':0}, 1111, function(){
+                window.location = window.location;
+            });
         },
         "none": function(c) {
-            if(c[0] != "")
+            if(c[0] !== "")
                 print("-bash: " + c[0] + ": comando no encontrado.");
             else
                 return;
@@ -188,9 +188,9 @@
         "reload": ['reload the console']
     },
     intro = 13,
-    append = function(char) {
+    append = function(car) {
         var line = getLine();
-        $(line).find("span#g").append(char);
+        $(line).find("span#g").append(car);
     },
     print = function(str) {
         var line = getLine();
@@ -208,7 +208,7 @@
     };
     //El loop del efecto del cursor de texto
     (loop = function() {
-        if($('span#l').length == 0)
+        if($('span#l').length === 0)
             $('body').append('<span id="l" style="display:none"></span>');
         $('span#l').delay(600).animate({'opacity': 0}, 10)
                    .delay(600).animate({'opacity': 1}, 10, loop);
@@ -219,6 +219,7 @@
         this.shell = $.extend({}, shell, nshell);
         this.env = $.extend({}, env, nenv);
         this.help = $.extend({}, help, nhelp);
+        this.historial = [];
 
         this.init();
     }
@@ -236,7 +237,7 @@
             $(this.element).delay(333).animate({'opacity':0}, 1111, c);
         },
         enLaBusquedaDelTextoPerdido: function() {
-            if($(this.element).text().length == 0)
+            if($(this.element).text().length === 0)
                 $(this.element).append('<div class="consola"></div>').find(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ");
         },
         console: function() {
@@ -245,38 +246,39 @@
             shell = this.shell;
             env = this.env;
             help = this.help;
+            historial = this.historial;
             $(document).keydown(function(e) {
                 var keyCode = e.keyCode,
                 lines = $(element).find(".consola-line").length,
                 line = $(".consola-line")[lines-1];
-                !(keyCode == 82 && e.metaKey);
                 if(!(keyCode == 82 && e.metaKey) || !(keyCode == 81 && e.metaKey))
                     e.preventDefault();
 
                 //console.log(keyCode);
-                if($(".consola").length == 0)
+                if($(".consola").length === 0)
                     $(element).append('<div class="consola"></div>').find("span#l").remove();
-                if(lines == 0)
+                if(lines === 0)
                     $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ");
-                else if(!e.shiftKey && !e.altKey && chars[keyCode] != undefined)
+                else if(!e.shiftKey && !e.altKey && chars[keyCode] !== undefined)
                     append(chars[keyCode]);
                 else if(keyCode == 8) //Eliminar caracter
                     remove();
-                else if(e.shiftKey && !e.altKey && shift_chars[keyCode] != undefined)
-                    append(shift_chars[keyCode])
-                else if(!e.shiftKey && e.altKey && alt_chars[keyCode] != undefined)
+                else if(e.shiftKey && !e.altKey && shift_chars[keyCode] !== undefined)
+                    append(shift_chars[keyCode]);
+                else if(!e.shiftKey && e.altKey && alt_chars[keyCode] !== undefined)
                     append(alt_chars[keyCode]);
                 else if(keyCode == intro) { //Nueva linea -> enviar comando
                     $(line).find("span#l").remove();
                     $(line).append("<br>");
                     var comando = $(line).find("span#g").text().split(" ");
+                    historial[historial.length] = $(line).find("span#g").text();
                     $.each(comando, function(a, b) { //Busca variables en el comando
                         if(b.search("$") != -1) {
                             var vars = b.split("$").length - 1, i = 0;
                             while(i < vars) {
                                 var variable = b.split("$")[1];
                                 var sustituto = env[variable];
-                                if(sustituto != undefined)
+                                if(sustituto !== undefined)
                                     comando[a] = sustituto;
                                 else
                                     comando[a] = "";
@@ -284,13 +286,38 @@
                             }
                         }
                     });
-                    if(shell[comando[0]] != undefined && comando[0] != undefined)
+                    if(shell[comando[0]] !== undefined && comando[0] !== undefined)
                         shell[comando[0]](comando);
-                    else if(shell[comando[0]] == undefined && comando[0] != undefined)
+                    else if(shell[comando[0]] === undefined && comando[0] !== undefined)
                         shell["none"](comando);
                     $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>');
                     $($(".consola .consola-line")[lines]).find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ");
-                    $(element).scrollTop(100000)
+                    $(element).scrollTop(100000);
+                } else if(keyCode === 38) { //Arriba
+                    if($(line).find('span#g').data('historial') === undefined) {
+                        $(line).find("span#g").empty().data('historial', historial.length - 1);
+                        var comando = historial[historial.length - 1];
+                        append(comando);
+                    } else {
+                        var num = parseInt($(line).find('span#g').data('historial')) - 1,
+                        comando = historial[num];
+                        if(num <= historial.length && num >= 0) {
+                            $(line).find("span#g").empty().data('historial', num);
+                            append(comando);
+                        }
+                    }
+                } else if(keyCode === 40) { //Abajo
+                    if($(line).find('span#g').data('historial') === undefined) {
+                        $(line).find("span#g").empty().data('historial', historial.length + 1);
+                        var comando = historial[historial.length + 1];
+                    } else {
+                        var num = parseInt($(line).find('span#g').data('historial')) + 1,
+                        comando = historial[num];
+                        if(num <= historial.length && num >= 0) {
+                            $(line).find("span#g").empty().data('historial', num);
+                            append(comando);
+                        }
+                    }
                 }
                 $(element).scrollTop(100000);
             });
@@ -320,7 +347,7 @@
 
     $[pluginName] = function(options) {
         return $(".console").webterminal($(".console"));
-    }
+    };
     
     $[pluginName].env = env;
     $[pluginName].shell = shell;
