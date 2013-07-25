@@ -45,6 +45,17 @@ I recommand to put this CSS code in the page where you want to use the console f
 `.consola-line` is a div created by the script. You have to set the width manually (for now…).
 
 ## Usage
+### Configuration
+The confugration is optional, but recommended because some commands need a server program which sends information to the client. The configuration is:
+```javascript
+conf = {
+    server: false,      //Tells if we will use a server script for special commands such 'ls'
+    script: '',      //Tells what type of script will use
+    phpscript: '/'      //If we use php script, tell where in the server is the script ex: for 'http://localhost/webterminal/server.php the value will be '/webterminal/'
+}
+$('.console').webterminal(conf);
+```
+The `server.js` and `server.php` are script to use in the server. Use `server.php` if you use a basic server or you haven't node.js. The limitation of use the PHP script is you can navigate only with the server directory. Node.js script is for navigate in all computer and if you execute the server with a normal user will need sudo for change files, and fortunately I haven't implement sudo and I won't do it, for security reasons ;).
 ### Extend commands
 To extend the terminal commands, you need first to create them. See the example:
 ```javascript
@@ -58,7 +69,7 @@ var commands = {
         $.webconsole.newLine()
     }
 };
-$(".console").webconsole(commands);
+$(".console").webconsole({}, commands);
 ```
 You create an array with the name of the command and a function to do when is called. To print something in the console while is running your command, you need this code:`$.webconsole.print()`, as you can see in the above example.
 And if you, in the console, type *hello* it returns `Hello World!` and if you type *salute melchor629* it returns `Hello melchor629!`. **Very important**, the `$.webconsole.newLine()` is important to be in the function because is part of the console functionally. I put this function there because of async functions (*non-blocking functions*). You can see an example in the `ls` command or `cd` command.
@@ -70,7 +81,7 @@ var env = {
     'name': 'melchor629',
     'divs': $('div').length
 };
-$(".console").webconsole({}, env);
+$(".console").webconsole({}, {}, env);
 ```
 You create an array with the variable and its value. The value can be a String or Number. And after call the `.webconsole()` with the new environment variables. In the console type `env` and you will see that new variables. You may have noticed that the first parameter is a empty array `{}`, this means that we don't want to create new commands.
 
@@ -97,7 +108,7 @@ var help = {
 ```
 And finally, create the console:
 ```javascript
-$(".console").webconsole(commands, {}, help);
+$(".console").webconsole({}, commands, {}, help);
 ```
 In every help you have to make an array with 2 strings. The very short description, and the long description.
 Type `help` in the console and you will see the commands with its help. If you type `help salute` you will see the long description.

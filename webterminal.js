@@ -242,6 +242,11 @@
         '}': 'U+00E7',
         '\\': 'U+00BA'
     },
+    conf = {
+        server: false,      //Tells if we will use a server script for special commands such 'ls'
+        script: '',      //Tells what type of script will use
+        phpscript: '/'      //If we use php script, tell where in the server is the script ex: for `http://localhost/webterminal/server.php` the value will be '/webterminal/'
+    },
     env = {
         "TERM_PROGRAM": window.navigator.userAgent,
         "SHELL": decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)) + "webterminal.js",
@@ -295,38 +300,38 @@
             newLine();
         },
         "ls": function(c) {
-            var url = document.location.protocol == 'file:' ? 'http://localhost:8080/' : document.location.protocol + "//"
-                + document.location.hostname + ":8080/";
-                url = url + "ls/?0=" + env['PWD'];
+            var url = urlHelper('ls', env['PWD']);
             $.getJSON(url, function(json, stat, xhr) {
                 $.each(json.respuesta.mensaje, function(i, v) {
                     print(v);
                 });
                 newLine();
-            });
+            }).error(function(){throw 'Server script doesn\'t exist.'});
         },
         "cd": function(c) {
-            if(c[1].indexOf('..') !== -1) {
-                var split = env['PWD'].split('/'), carpeta = '';
-                $.each(split, function(i, v){
-                    if(i < (split.length - 2))
-                        carpeta += v + '/';
-                });
-            } else if(c[1] == '.' || c[1] == './')
-                var carpeta = env['PWD'];
-            else {
-                var carpeta = c[1];
-            }
-            var url = document.location.protocol == 'file:' ? 'http://localhost:8080/' : document.location.protocol + "//"
-                + document.location.hostname + ":8080/";
-                url = url + "cd/?0=" + carpeta;
-            $.getJSON(url, function(json, stat, xhr) {
-                if(json.respuesta.res == 1)
-                    print(json.respuesta.mensaje);
-                else
-                    env['PWD'] = carpeta;
+            if(c[1] !== undefined) {
+                if(c[1].indexOf('..') !== -1) {
+                    var split = env['PWD'].split('/'), carpeta = '';
+                    $.each(split, function(i, v){
+                        if(i < (split.length - 2))
+                            carpeta += v + '/';
+                    });
+                } else if(c[1] == '.' || c[1] == './')
+                    var carpeta = env['PWD'];
+                else {
+                    var carpeta = c[1];
+                }
+                var url = urlHelper('cd', carpeta);
+                $.getJSON(url, function(json, stat, xhr) {
+                    if(json.respuesta.res == 1)
+                        print(json.respuesta.mensaje);
+                    else
+                        env['PWD'] = carpeta;
+                    newLine();
+                }).error(function(){throw 'Server script doesn\'t exist.'});
+            } else {
                 newLine();
-            });
+            }
         },
         "none": function(c) {
             if(c[0] !== "")
@@ -366,6 +371,19 @@
         $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>');
         $($(".consola .consola-line")[lines]).find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ");
         $(element).scrollTop(100000);
+    },
+    urlHelper = function(command, arg) {
+        var conf = window.webterminal.prototype.conf;
+        if(conf.server === true) {
+            if(conf.script == 'node.js') {
+                return document.location.protocol == 'file:' ? 'http://localhost:8080/' : document.location.protocol + "//"
+                    + document.location.hostname + ":8080/" + command + '/?0=' + encodeURI(arg);
+            } else if(conf.script == 'php') {
+                return document.location.protocol + "//" + document.location.hostname + "/" + conf.phpscript + '?c=' + command + '&0=' + encodeURI(arg);
+            } else {
+                throw 'The value for `server` is true but you don\'t give a correct value for `script` [node.js, php]';
+            }
+        }
     };
     //El loop del efecto del cursor de texto
     (loop = function() {
@@ -386,18 +404,24 @@
     });
     chars = ch;shift_chars = sh;alt_chars = al;
 
-    function Plugin(element, nshell, nenv, nhelp) {
+    function Plugin(element, nconf, nshell, nenv, nhelp) {
         this.element = element;
+        this.conf = $.extend({}, conf, nconf);
         this.shell = $.extend({}, shell, nshell);
         this.env = $.extend({}, env, nenv);
         this.help = $.extend({}, help, nhelp);
         this.historial = [];
 
-        this.init();
+        this.init(this.conf, this.shell, this.env, this.help);
     }
 
     Plugin.prototype = {
-        init: function() {
+        init: function(conf, shell, env, help) {
+            Plugin.prototype.conf = conf;
+            Plugin.prototype.shell = shell;
+            Plugin.prototype.env = env;
+            Plugin.prototype.help = help;
+
             this._showTerm();
             this.lang();
             this.enLaBusquedaDelTextoPerdido();
@@ -445,7 +469,7 @@
                     return;
                 e.preventDefault();
 
-                console.log(e.originalEvent.keyIdentifier);
+                //console.log(keyCode);
                 if($(".consola").length === 0)
                     $(element).append('<div class="consola"></div>').find("span#l").remove();
                 if(lines === 0)
@@ -477,10 +501,17 @@
                             }
                         }
                     });
-                    if(shell[comando[0]] !== undefined && comando[0] !== undefined)
-                        shell[comando[0]](comando);
+                    if(shell[comando[0]] !== undefined && comando[0] !== undefined) {
+                        try {
+                            shell[comando[0]](comando);
+                        } catch(e) {
+                            print('<span style="color:red">&gt;&nbsp;Has ocurred an error. See dev tools console</span>');
+                            newLine();
+                            throw e;
+                        }
+                    }
                     else if(shell[comando[0]] === undefined && comando[0] !== undefined)
-                        shell["none"](comando);
+                            shell["none"](comando);
                 } else if(keyCode === 38) { //Arriba
                     if($(line).find('span#g').data('historial') === undefined) {
                         $(line).find("span#g").empty().data('historial', historial.length - 1);
@@ -514,12 +545,12 @@
         }
     };
 
-    $.fn[pluginName] = function(options, opt, o) {
+    $.fn[pluginName] = function(conf, options, opt, o) {
         var args = arguments;
         if (options === undefined || typeof options === 'object') {
             return this.each(function () {
                 if (!$.data(this, 'plugin_' + pluginName)) {
-                    $.data(this, 'plugin_' + pluginName, new Plugin(this, options, opt, o));
+                    $.data(this, 'plugin_' + pluginName, new Plugin(this, conf, options, opt, o));
                 }
             });
         } else if (typeof options === 'string' && options[0] !== '_' && options !== 'init') {
@@ -544,6 +575,7 @@
     $[pluginName].print = print;
     $[pluginName].help = help;
     $[pluginName].newLine = newLine;
+    $[pluginName].urlHelper = urlHelper;
 
     window.webterminal = Plugin;
 
