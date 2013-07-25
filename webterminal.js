@@ -13,7 +13,7 @@
     pluginName = 'webterminal',
     lines = 0,
     line = $(".consola-line")[lines-1],
-    chars = {
+    /*chars = {
         81: 'q',
         87: 'w',
         69: 'e',
@@ -125,20 +125,136 @@
         222: '{',
         219: '[',
         221: ']'
+    },*/
+    chars = {
+        'q': "U+0051",
+        'w': "U+0057",
+        'e': "U+0045",
+        'r': "U+0052",
+        't': "U+0054",
+        'y': "U+0059",
+        'u': "U+0055",
+        'i': "U+0049",
+        'o': "U+004F",
+        'p': "U+0050",
+        'a': "U+0041",
+        's': "U+0053",
+        'd': "U+0044",
+        'f': "U+0046",
+        'g': "U+0047",
+        'h': "U+0048",
+        'j': "U+004A",
+        'k': "U+004B",
+        'l': "U+004C",
+        'ñ': "U+00F1",
+        'ç': "U+00E7",
+        'z': "U+005A",
+        'x': "U+0058",
+        'c': "U+0043",
+        'v': "U+0056",
+        'b': "U+0042",
+        'n': "U+004E",
+        'm': "U+004D",
+
+        ' ': "U+0020",
+        '.': "U+002E",
+        ',': "U+002C",
+        '0': "U+0030",
+        '1': "U+0031",
+        '2': "U+0032",
+        '3': "U+0033",
+        '4': "U+0034",
+        '5': "U+0035",
+        '6': "U+0036",
+        '7': "U+0037",
+        '8': "U+0038",
+        '9': "U+0039",
+        '\'': "U+0027",
+        '¡': "U+00A1",
+        '-': "U+002D"
+    },
+    shiftChars = {
+        'Q': "U+0051",
+        'W': "U+0057",
+        'E': "U+0045",
+        'R': "U+0052",
+        'T': "U+0054",
+        'Y': "U+0059",
+        'U': "U+0055",
+        'I': "U+0049",
+        'O': "U+004F",
+        'P': "U+0050",
+        'A': "U+0041",
+        'S': "U+0053",
+        'D': "U+0044",
+        'F': "U+0046",
+        'G': "U+0047",
+        'H': "U+0048",
+        'J': "U+004A",
+        'K': "U+004B",
+        'L': "U+004C",
+        'Ñ': "U+00F1",
+        'Ç': "U+00E7",
+        'Z': "U+005A",
+        'X': "U+0058",
+        'C': "U+0043",
+        'V': "U+0056",
+        'B': "U+0042",
+        'N': "U+004E",
+        'M': "U+004D",
+
+        ' ': "U+0020",
+        ':': "U+003A",
+        ';': "U+003B",
+        '=': "U+003D",
+        '!': "U+0021",
+        '"': "U+0022",
+        '·': "U+00B7",
+        '$': "U+0024",
+        '%': "U+0025",
+        '&': "U+0026",
+        '/': "U+002F",
+        '(': "U+0028",
+        ')': "U+0029",
+        '?': "U+003F",
+        '¿': "U+00BF",
+        '_': "U+005F"
+    },
+    altChars = {
+        '–': 'U+002D',
+        '…': 'U+002E',
+        '„': 'U+002C',
+        '≠': 'U+0030',
+        '|': 'U+0031',
+        '@': 'U+0032',
+        '#': 'U+0033',
+        '¢': 'U+0034',
+        '∞': 'U+0035',
+        '¬': 'U+0036',
+        '÷': 'U+0037',
+        '“': 'U+0038',
+        '”': 'U+0039',
+        '´': 'U+0027',
+        '‚': 'U+00A1',
+        '[': 'Unidentified',
+        ']': 'U+002B',
+        '{': 'Unidentified',
+        '}': 'U+00E7',
+        '\\': 'U+00BA'
     },
     env = {
         "TERM_PROGRAM": window.navigator.userAgent,
-        "SHELL": document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1) + "404.js",
+        "SHELL": decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)) + "webterminal.js",
         "USER": "root",
-        "PWD": document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)
+        "PWD": decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1))
     },
     shell = {
         "help": function(c) {
             if (c[1] === undefined) {
                 print("webterminal, version " + version + " (" + window.navigator.userAgent + ")");
-                print("These shell commands are defined internally or externally. Type `help` to see this list.");
-                print("Type `help name` to find out more about the function `name`.");
-                print("Maybe some commands doesn't show up in this help, it depends on the web programmer.");
+                print($.webterminal.idioma.shell.help[1]);
+                print($.webterminal.idioma.shell.help[2]);
+                print($.webterminal.idioma.shell.help[3]);
                 $.each(help, function(a, b){
                     print("&nbsp;" + a + " " + b[0]);
                 });
@@ -147,7 +263,8 @@
                 print(c[1] + ": " + b[0]);
                 print(b[1]);
             } else if(help[c[1]] === undefined)
-                print("-bash: help: no help topics match `" + c[1] + "`.");
+                print($.webterminal.idioma.shell.help['noHelp'] + " `" + c[1] + "`.");
+            newLine();
         },
         "echo": function(c) {
             var str = "";
@@ -157,27 +274,66 @@
                 }
             });
             print(str);
+            newLine();
         },
         "env": function() {
             $.each(env, function(a, b){
                 print(a + "=" + b);
             });
+            newLine();
         },
         "export": function(c) {
             var kv = c[1].split("=");
             env[kv[0]] = kv[1];
             print(kv[0] + " = " + kv[1]);
+            newLine();
         },
         "reload": function() {
             $(element).delay(333).animate({'opacity':0}, 1111, function(){
                 window.location = window.location;
             });
+            newLine();
+        },
+        "ls": function(c) {
+            var url = document.location.protocol == 'file:' ? 'http://localhost:8080/' : document.location.protocol + "//"
+                + document.location.hostname + ":8080/";
+                url = url + "ls/?0=" + env['PWD'];
+            $.getJSON(url, function(json, stat, xhr) {
+                $.each(json.respuesta.mensaje, function(i, v) {
+                    print(v);
+                });
+                newLine();
+            });
+        },
+        "cd": function(c) {
+            if(c[1].indexOf('..') !== -1) {
+                var split = env['PWD'].split('/'), carpeta = '';
+                $.each(split, function(i, v){
+                    if(i < (split.length - 2))
+                        carpeta += v + '/';
+                });
+            } else if(c[1] == '.' || c[1] == './')
+                var carpeta = env['PWD'];
+            else {
+                var carpeta = c[1];
+            }
+            var url = document.location.protocol == 'file:' ? 'http://localhost:8080/' : document.location.protocol + "//"
+                + document.location.hostname + ":8080/";
+                url = url + "cd/?0=" + carpeta;
+            $.getJSON(url, function(json, stat, xhr) {
+                if(json.respuesta.res == 1)
+                    print(json.respuesta.mensaje);
+                else
+                    env['PWD'] = carpeta;
+                newLine();
+            });
         },
         "none": function(c) {
             if(c[0] !== "")
-                print("-bash: " + c[0] + ": comando no encontrado.");
+                print("-bash: " + c[0] + ": " + $.webterminal.idioma.shell.none);
             else
                 return;
+            newLine();
         }
     },
     help = {
@@ -187,7 +343,6 @@
         "export": ['sets a variable'],
         "reload": ['reload the console']
     },
-    intro = 13,
     append = function(car) {
         var line = getLine();
         $(line).find("span#g").append(car);
@@ -205,6 +360,12 @@
         var line = getLine(),
         str = $(line).find("span#g").text().substr(0, $(line).find("span#g").text().length - 1);
         $(line).find("span#g").empty().append(str);
+    },
+    newLine = function() {
+        var lines = $(element).find(".consola-line").length;
+        $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>');
+        $($(".consola .consola-line")[lines]).find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ");
+        $(element).scrollTop(100000);
     };
     //El loop del efecto del cursor de texto
     (loop = function() {
@@ -213,6 +374,17 @@
         $('span#l').delay(600).animate({'opacity': 0}, 10)
                    .delay(600).animate({'opacity': 1}, 10, loop);
     })();
+    var ch = {}, sh = {}, al = {};
+    $.each(chars, function(i, v){
+        ch[v] = i;
+    });
+    $.each(shiftChars, function(i, v) {
+        sh[v] = i;
+    });
+    $.each(altChars, function(i, v) {
+        al[v] = i;
+    });
+    chars = ch;shift_chars = sh;alt_chars = al;
 
     function Plugin(element, nshell, nenv, nhelp) {
         this.element = element;
@@ -227,6 +399,7 @@
     Plugin.prototype = {
         init: function() {
             this._showTerm();
+            this.lang();
             this.enLaBusquedaDelTextoPerdido();
             this.console();
         },
@@ -240,6 +413,23 @@
             if($(this.element).text().length === 0)
                 $(this.element).append('<div class="consola"></div>').find(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ");
         },
+        lang: function() {
+            var disponible = ['es-es', 'en-gb', 'en-us'],
+                idioma = window.navigator.language,
+                isThere = false;
+            $.each(disponible, function(i, v) {
+                if(!isThere) isThere = v == idioma;
+            });
+            if(!isThere) idioma = 'en-gb';
+            this.idioma = {};
+            (function(d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) return;
+                js = d.createElement(s); js.id = id;
+                js.src = "lang/" + idioma + ".js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'webterminal-lang'));
+        },
         console: function() {
             //Consola
             element = this.element;
@@ -248,26 +438,27 @@
             help = this.help;
             historial = this.historial;
             $(document).keydown(function(e) {
-                var keyCode = e.keyCode,
+                var keyCode = e.originalEvent.keyIdentifier,//e.which,
                 lines = $(element).find(".consola-line").length,
                 line = $(".consola-line")[lines-1];
-                if(!(keyCode == 82 && e.metaKey) || !(keyCode == 81 && e.metaKey))
-                    e.preventDefault();
+                if(e.metaKey || (e.ctrlKey && keyCode == 82) || (e.ctrlKey && keyCode == 84))
+                    return;
+                e.preventDefault();
 
-                //console.log(keyCode);
+                console.log(e.originalEvent.keyIdentifier);
                 if($(".consola").length === 0)
                     $(element).append('<div class="consola"></div>').find("span#l").remove();
                 if(lines === 0)
                     $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ");
                 else if(!e.shiftKey && !e.altKey && chars[keyCode] !== undefined)
                     append(chars[keyCode]);
-                else if(keyCode == 8) //Eliminar caracter
+                else if(keyCode == 'U+0008') //Eliminar caracter
                     remove();
                 else if(e.shiftKey && !e.altKey && shift_chars[keyCode] !== undefined)
                     append(shift_chars[keyCode]);
                 else if(!e.shiftKey && e.altKey && alt_chars[keyCode] !== undefined)
                     append(alt_chars[keyCode]);
-                else if(keyCode == intro) { //Nueva linea -> enviar comando
+                else if(keyCode == 'Enter') { //Nueva linea -> enviar comando
                     $(line).find("span#l").remove();
                     $(line).append("<br>");
                     var comando = $(line).find("span#g").text().split(" ");
@@ -290,9 +481,6 @@
                         shell[comando[0]](comando);
                     else if(shell[comando[0]] === undefined && comando[0] !== undefined)
                         shell["none"](comando);
-                    $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>');
-                    $($(".consola .consola-line")[lines]).find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ");
-                    $(element).scrollTop(100000);
                 } else if(keyCode === 38) { //Arriba
                     if($(line).find('span#g').data('historial') === undefined) {
                         $(line).find("span#g").empty().data('historial', historial.length - 1);
@@ -320,6 +508,8 @@
                     }
                 }
                 $(element).scrollTop(100000);
+                if($(element).height() < $(".consola").height())
+                    $(".consola-line").addClass("consola-line-short");
             });
         }
     };
@@ -353,6 +543,7 @@
     $[pluginName].shell = shell;
     $[pluginName].print = print;
     $[pluginName].help = help;
+    $[pluginName].newLine = newLine;
 
     window.webterminal = Plugin;
 

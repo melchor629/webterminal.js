@@ -50,16 +50,18 @@ To extend the terminal commands, you need first to create them. See the example:
 ```javascript
 var commands = {
     "hello": function() {
-        $.webconsole.print("Hello World!")
+        $.webconsole.print("Hello World!");
+        $.webconsole.newLine()
     },
     "salute": function(c) {
-        $.webconsole.print("Hello " + c[1] + "!")
+        $.webconsole.print("Hello " + c[1] + "!");
+        $.webconsole.newLine()
     }
 };
 $(".console").webconsole(commands);
 ```
 You create an array with the name of the command and a function to do when is called. To print something in the console while is running your command, you need this code:`$.webconsole.print()`, as you can see in the above example.
-And if you, in the console, type *hello* it returns `Hello World!` and if you type *salute melchor629* it returns `Hello melchor629!`.
+And if you, in the console, type *hello* it returns `Hello World!` and if you type *salute melchor629* it returns `Hello melchor629!`. **Very important**, the `$.webconsole.newLine()` is important to be in the function because is part of the console functionally. I put this function there because of async functions (*non-blocking functions*). You can see an example in the `ls` command or `cd` command.
 
 ### Put extra initial environment variables
 To start the console with extra environment variables, you have to do something similar to the above item. See the example:
@@ -77,10 +79,12 @@ Start doing the same as the  *extend commands* item:
 ```javascript
 var commands = {
     "hello": function() {
-        $.webconsole.print("Hello World!")
+        $.webconsole.print("Hello World!");
+        $.webconsole.newLine()
     },
     "salute": function(c) {
-        $.webconsole.print("Hello " + c[1] + "!")
+        $.webconsole.print("Hello " + c[1] + "!");
+        $.webconsole.newLine()
     }
 };
 ```
@@ -101,5 +105,5 @@ You may have noticed that the second parameter is an empty array, again, we don'
 
 ## TODO List
 - [ ] Auto-detect the width of the console (_the selected `<div/>`_)
-- [ ] If is pressed the key UP or DOWN, write the before commands
+- [X] If is pressed the key UP or DOWN, write the before commands
 - [ ] Create more commands
