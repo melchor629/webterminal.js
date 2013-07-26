@@ -277,7 +277,7 @@
     env = {
         "TERM_PROGRAM": window.navigator.userAgent,
         "SHELL": decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)) + "webterminal.js",
-        "USER": "root",
+        "USER": "guest",
         "PWD": decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1))
     },
     shell = {
@@ -339,17 +339,7 @@
         },
         "cd": function(c) {
             if(c[1] !== undefined) {
-                if(c[1].indexOf('..') !== -1) {
-                    var split = env['PWD'].split('/'), carpeta = '';
-                    $.each(split, function(i, v){
-                        if(i < (split.length - 2))
-                            carpeta += v + '/';
-                    });
-                } else if(c[1] == '.' || c[1] == './')
-                    var carpeta = env['PWD'];
-                else {
-                    var carpeta = c[1];
-                }
+                var carpeta = dirHelper(c[1]);
                 var url = urlHelper('cd', carpeta);
                 url = url + '&PWD=' + env['PWD'];
                 if(url) {
@@ -364,6 +354,62 @@
             } else {
                 newLine();
             }
+        },
+        "rm": function(c) {
+            if(!isAdmin()) return;
+            if(c[1] !== undefined) {
+                var file = dirHelper(c[1]);
+                var url = urlHelper('rm', file);
+                url = url + '&PWD=' + env['PWD'];
+                if(url) {
+                    $.getJSON(url, function(json, stat, xhr) {
+                        if(json.respuesta.res == 1)
+                            print(json.respuesta.mensaje);
+                        newLine();
+                    }).error(function(){throw 'Server script doesn\'t exist.'});
+                } else newLine();
+            } else {
+                print('usage: rm file');
+                newLine();
+            }
+        },
+        "rmdir": function(c) {
+            if(!isAdmin()) return;
+            if(c[1] !== undefined) {
+                var file = dirHelper(c[1]);
+                var url = urlHelper('rmdir', file);
+                url = url + '&PWD=' + env['PWD'];
+                if(url) {
+                    $.getJSON(url, function(json, stat, xhr) {
+                        if(json.respuesta.res == 1)
+                            print(json.respuesta.mensaje);
+                        newLine();
+                    }).error(function(){throw 'Server script doesn\'t exist.'});
+                } else newLine();
+            } else {
+                print('usage: rm directory');
+                newLine();
+            }
+        },
+        "sudo": function(c) {
+            if(c[1] == 'su') {
+                if(c[2] !== undefined) {
+                    var url = urlHelper('sudo su', window.MD5(c[2]));
+                    if(url) {
+                        $.getJSON(url, function(json, stat, xhr) {
+                            if(json.respuesta.res == 1)
+                                print(json.respuesta.mensaje);
+                            else
+                                env['USER'] = json.respuesta.mensaje;
+                            newLine();
+                        });
+                    }
+                } else {
+                    print('No password given');
+                    newLine();
+                }
+            } else
+                newLine();
         },
         "none": function(c) {
             if(c[0] !== "")
@@ -417,6 +463,28 @@
                 throw 'The value for `server` is true but you don\'t give a correct value for `script` [node.js, php]';
             }
         }
+    },
+    dirHelper = function(folder) {
+        if(folder.indexOf('..') !== -1) {
+            var split = env['PWD'].split('/'), carpeta = '';
+            $.each(split, function(i, v){
+                if(i < (split.length - 2))
+                    carpeta += v + '/';
+            });
+        } else if(folder == '.' || folder == './')
+            var carpeta = env['PWD'];
+        else {
+            var carpeta = folder;
+        }
+        return carpeta;
+    },
+    isAdmin = function() {
+        if(env['USER'] != 'root') {
+                print('This command require special magical power :/');
+                newLine();
+                return false;
+            } else
+                return true;
     };
     //El loop del efecto del cursor de texto
     (loop = function() {
@@ -454,6 +522,13 @@
             Plugin.prototype.shell = shell;
             Plugin.prototype.env = env;
             Plugin.prototype.help = help;
+            (function(d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) return;
+                js = d.createElement(s); js.id = id;
+                js.src = "md5.min.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'md5'));
 
             this._showTerm();
             this.lang();
@@ -609,6 +684,8 @@
     $[pluginName].help = help;
     $[pluginName].newLine = newLine;
     $[pluginName].urlHelper = urlHelper;
+    $[pluginName].dirHelper = dirHelper;
+    $[pluginName].isAdmin = isAdmin;
 
     window.webterminal = Plugin;
 

@@ -1,4 +1,5 @@
 <?
+$password = ''; //EDITME
 function resp(&$json, $mensaje, $res) {
     $json['respuesta'] = array(
         'mensaje' => $mensaje,
@@ -40,9 +41,37 @@ if(isset($_GET)) {
             if(is_dir($serverDir . $arg)) 
                 resp($json, str_replace($_SERVER['DOCUMENT_ROOT'], '', $serverDir.$arg), 0);
             elseif(is_file($serverDir . $arg))
-                resp($json, 'Not a directory', 1);
+                resp($json, $arg . ': Not a directory', 1);
             else
-                resp($json, 'No such file or directory', 1);
+                resp($json, $arg . ': No such file or directory', 1);
+            break;
+        case 'rm':
+            if(substr($arg, 0, 1) != '/')
+                $serverDir = $serverDir.'/';
+            if(is_file($serverDir.$arg)) {
+                unlink($serverDir.$arg);
+                resp($json, true, 0);
+            } elseif(is_dir($serverDir.$arg))
+                resp($json, $arg . ': is a directory', 1);
+            else
+                resp($json, $arg . ': No such file or directory', 1);
+            break;
+        case 'rmdir':
+            if(substr($arg, 0, 1) != '/')
+                $serverDir = $serverDir.'/';
+            if(is_dir($serverDir.$arg)) {
+                rmdir($serverDir.$arg);
+                resp($json, true, 0);
+            } elseif(is_file($serverDir.$arg))
+                resp($json, $arg . ': Not a directory', 1);
+            else
+                resp($json, $arg . ': No such file or directory', 1);
+            break;
+        case 'sudo su':
+            if($arg == md5($password))
+                resp($json, 'root', 0);
+            else
+                resp($json, 'Password don\'t match', 1);
             break;
         default:
             resp($json, 'Ese comando no existe…', 1);
