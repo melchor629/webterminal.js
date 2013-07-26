@@ -11,6 +11,7 @@ if(isset($_GET)) {
     $command = $_GET['c'];
     $arg = $_GET['0'];
     $serverDir = $_SERVER['DOCUMENT_ROOT'];
+    $PWD = isset($_GET['PWD']) ? $_GET['PWD'] : null;
     $json = array('pedido' => array(), 'respuesta' => array());
     $json['pedido'] = array(
         'comando' => $command,
@@ -30,8 +31,14 @@ if(isset($_GET)) {
                 resp($json, $out, 0);
             break;
         case 'cd':
+            if(strpos($arg, '/') !== 0)
+                $serverDir = $serverDir.$PWD;
+            else
+                $serverDir = $serverDir;
+            if(substr($serverDir.$arg, strlen($serverDir.$arg) -1) != '/')
+                $arg = $arg.'/';
             if(is_dir($serverDir . $arg)) 
-                resp($json, '', 0);
+                resp($json, str_replace($_SERVER['DOCUMENT_ROOT'], '', $serverDir.$arg), 0);
             elseif(is_file($serverDir . $arg))
                 resp($json, 'Not a directory', 1);
             else

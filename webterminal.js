@@ -218,23 +218,7 @@
         ')': "U+0029",
         '?': "U+003F",
         '¿': "U+00BF",
-        '_': "U+005F",
-        //Windows/Linux
-        ':': "U+00BE",
-        ';': "U+00BC",
-        '=': "U+0030",
-        '!': "U+0031",
-        '"': "U+0032",
-        '·': "U+0033",
-        '$': "U+0034",
-        '%': "U+0035",
-        '&': "U+0036",
-        '/': "U+0037",
-        '(': "U+0038",
-        ')': "U+0039",
-        '?': "U+00DB",
-        '¿': "U+00DD",
-        '_': "U+00BD"
+        '_': "U+005F"
     },
     altChars = {
         '–': 'U+002D',
@@ -256,13 +240,35 @@
         ']': 'U+002B',
         '{': 'Unidentified',
         '}': 'U+00E7',
-        '\\': 'U+00BA',
-        //Windows
-        '[': 'U+00BA',
-        ']': 'U+00BB',
-        '{': 'U+00DE',
-        '}': 'U+00BF'
-    },
+        '\\': 'U+00BA'
+    };
+    if(window.navigator.platform != 'MacIntel') {
+        //Characters with different key Identifier (for non Mac OS)
+        shift_chars = $.extend({}, shift_chars, {
+            ':': "U+00BE",
+            ';': "U+00BC",
+            '=': "U+0030",
+            '!': "U+0031",
+            '"': "U+0032",
+            '·': "U+0033",
+            '$': "U+0034",
+            '%': "U+0035",
+            '&': "U+0036",
+            '/': "U+0037",
+            '(': "U+0038",
+            ')': "U+0039",
+            '?': "U+00DB",
+            '¿': "U+00DD",
+            '_': "U+00BD"
+        });
+        alt_chars = $.extend({}, alt_chars, {
+            '[': 'U+00BA',
+            ']': 'U+00BB',
+            '{': 'U+00DE',
+            '}': 'U+00BF'
+        });
+    }
+    var
     conf = {
         server: false,      //Tells if we will use a server script for special commands such 'ls'
         script: '',      //Tells what type of script will use
@@ -322,12 +328,14 @@
         },
         "ls": function(c) {
             var url = urlHelper('ls', env['PWD']);
-            $.getJSON(url, function(json, stat, xhr) {
-                $.each(json.respuesta.mensaje, function(i, v) {
-                    print(v);
-                });
-                newLine();
-            }).error(function(){throw 'Server script doesn\'t exist.'});
+            if(url) {
+                $.getJSON(url, function(json, stat, xhr) {
+                    $.each(json.respuesta.mensaje, function(i, v) {
+                        print(v);
+                    });
+                    newLine();
+                }).error(function(){throw 'Server script doesn\'t exist.'});
+            } else newLine();
         },
         "cd": function(c) {
             if(c[1] !== undefined) {
@@ -343,13 +351,16 @@
                     var carpeta = c[1];
                 }
                 var url = urlHelper('cd', carpeta);
-                $.getJSON(url, function(json, stat, xhr) {
-                    if(json.respuesta.res == 1)
-                        print(json.respuesta.mensaje);
-                    else
-                        env['PWD'] = carpeta;
-                    newLine();
-                }).error(function(){throw 'Server script doesn\'t exist.'});
+                url = url + '&PWD=' + env['PWD'];
+                if(url) {
+                    $.getJSON(url, function(json, stat, xhr) {
+                        if(json.respuesta.res == 1)
+                            print(json.respuesta.mensaje);
+                        else
+                            env['PWD'] = json.respuesta.mensaje;
+                        newLine();
+                    }).error(function(){throw 'Server script doesn\'t exist.'});
+                } else newLine();
             } else {
                 newLine();
             }
@@ -397,10 +408,11 @@
         var conf = window.webterminal.prototype.conf;
         if(conf.server === true) {
             if(conf.script == 'node.js') {
-                return document.location.protocol == 'file:' ? 'http://localhost:8080/' : document.location.protocol + "//"
+                return document.location.protocol == 'file:' ? 'http://localhost:8080/' + command + '/?0=' + encodeURI(arg) : document.location.protocol + "//"
                     + document.location.hostname + ":8080/" + command + '/?0=' + encodeURI(arg);
             } else if(conf.script == 'php') {
-                return document.location.protocol + "//" + document.location.hostname + "/" + conf.phpscript + '?c=' + command + '&0=' + encodeURI(arg);
+                return document.location.protocol == 'file:' ? 'http://localhost/server.php?c=' + command + '&0=' + encodeURI(arg) : document.location.protocol + "//"
+                    + document.location.hostname + conf.phpscript + 'server.php?c=' + command + '&0=' + encodeURI(arg);
             } else {
                 throw 'The value for `server` is true but you don\'t give a correct value for `script` [node.js, php]';
             }
@@ -533,7 +545,7 @@
                     }
                     else if(shell[comando[0]] === undefined && comando[0] !== undefined)
                             shell["none"](comando);
-                } else if(keyCode === 38) { //Arriba
+                } else if(keyCode === 'Up') { //Arriba
                     if($(line).find('span#g').data('historial') === undefined) {
                         $(line).find("span#g").empty().data('historial', historial.length - 1);
                         var comando = historial[historial.length - 1];
@@ -546,7 +558,7 @@
                             append(comando);
                         }
                     }
-                } else if(keyCode === 40) { //Abajo
+                } else if(keyCode === 'Down') { //Abajo
                     if($(line).find('span#g').data('historial') === undefined) {
                         $(line).find("span#g").empty().data('historial', historial.length + 1);
                         var comando = historial[historial.length + 1];
