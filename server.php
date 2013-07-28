@@ -1,10 +1,14 @@
 <?
-$password = ''; //EDITME
+$users = json_decode(file_get_contents('lib/users.json'));
 function resp(&$json, $mensaje, $res) {
     $json['respuesta'] = array(
         'mensaje' => $mensaje,
         'res' => $res
     );
+}
+function isAdmin($user) {
+    global $users;
+    return $users->{$user}->range === 1;
 }
 
 if(isset($_GET)) {
@@ -13,6 +17,7 @@ if(isset($_GET)) {
     $arg = $_GET['0'];
     $serverDir = $_SERVER['DOCUMENT_ROOT'];
     $PWD = isset($_GET['PWD']) ? $_GET['PWD'] : null;
+    $user = $_GET['USER'];
     $json = array('pedido' => array(), 'respuesta' => array());
     $json['pedido'] = array(
         'comando' => $command,
@@ -46,30 +51,39 @@ if(isset($_GET)) {
                 resp($json, $arg . ': No such file or directory', 1);
             break;
         case 'rm':
-            if(substr($arg, 0, 1) != '/')
-                $serverDir = $serverDir.'/';
-            if(is_file($serverDir.$arg)) {
-                unlink($serverDir.$arg);
-                resp($json, true, 0);
-            } elseif(is_dir($serverDir.$arg))
-                resp($json, $arg . ': is a directory', 1);
-            else
-                resp($json, $arg . ': No such file or directory', 1);
+            if(isAdmin($user)) {
+                if(substr($arg, 0, 1) != '/')
+                    $serverDir = $serverDir.'/';
+                if(is_file($serverDir.$arg)) {
+                    unlink($serverDir.$arg);
+                    resp($json, true, 0);
+                } elseif(is_dir($serverDir.$arg))
+                    resp($json, $arg . ': is a directory', 1);
+                else
+                    resp($json, $arg . ': No such file or directory', 1);
+            } else
+                resp($json , 'This command require special magical powers, ' . $user, 1);
             break;
         case 'rmdir':
-            if(substr($arg, 0, 1) != '/')
-                $serverDir = $serverDir.'/';
-            if(is_dir($serverDir.$arg)) {
-                rmdir($serverDir.$arg);
-                resp($json, true, 0);
-            } elseif(is_file($serverDir.$arg))
-                resp($json, $arg . ': Not a directory', 1);
-            else
-                resp($json, $arg . ': No such file or directory', 1);
+            if(isAdmin($user)) {
+                if(substr($arg, 0, 1) != '/')
+                    $serverDir = $serverDir.'/';
+                if(is_dir($serverDir.$arg)) {
+                    rmdir($serverDir.$arg);
+                    resp($json, true, 0);
+                } elseif(is_file($serverDir.$arg))
+                    resp($json, $arg . ': Not a directory', 1);
+                else
+                    resp($json, $arg . ': No such file or directory', 1);
+            } else
+                resp($json , 'This command require special magical powers, ' . $user, 1);
             break;
-        case 'sudo su':
-            if($arg == md5($password))
-                resp($json, 'root', 0);
+        case 'login':
+            $exist = array_key_exists($arg, $users);
+            if($exist && ($users->{$arg}->password == null || $_GET['password'] == $users->{$arg}->password))
+                resp($json, $arg, 0);
+            elseif(!$exist)
+                resp($json, "User {$arg} doesn't extist", 1);
             else
                 resp($json, 'Password don\'t match', 1);
             break;

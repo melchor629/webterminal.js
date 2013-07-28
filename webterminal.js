@@ -13,6 +13,7 @@
     pluginName = 'webterminal',
     lines = 0,
     line = $(".consola-line")[lines-1],
+    _this,
     /*chars = {
         81: 'q',
         87: 'w',
@@ -276,9 +277,9 @@
     },
     env = {
         "TERM_PROGRAM": window.navigator.userAgent,
+        "PWD": decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)),
         "SHELL": decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)) + "webterminal.js",
-        "USER": "guest",
-        "PWD": decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1))
+        "USER": "guest"
     },
     shell = {
         "help": function(c) {
@@ -291,7 +292,7 @@
                     print("&nbsp;" + a + " " + b[0]);
                 });
             } else if (c[1] !== undefined && help[c[1]] !== undefined) {
-                b = help[c[1]];
+                b = _this.help[c[1]];
                 print(c[1] + ": " + b[0]);
                 print(b[1]);
             } else if(help[c[1]] === undefined)
@@ -309,25 +310,28 @@
             newLine();
         },
         "env": function() {
-            $.each(env, function(a, b){
+            $.each(_this.env, function(a, b){
                 print(a + "=" + b);
             });
             newLine();
         },
         "export": function(c) {
-            var kv = c[1].split("=");
-            env[kv[0]] = kv[1];
-            print(kv[0] + " = " + kv[1]);
+            if(c[1] !== undefined) {
+                var kv = c[1].split("=");
+                _this.env[kv[0]] = kv[1];
+                print(kv[0] + " = " + kv[1]);
+            } else
+                print('usage: export VARIABLE=VALUE');
             newLine();
         },
         "reload": function() {
             $(element).delay(333).animate({'opacity':0}, 1111, function(){
                 window.location = window.location;
             });
-            newLine();
+            print('Wait…<span id="l">_</span>');
         },
         "ls": function(c) {
-            var url = urlHelper('ls', env['PWD']);
+            var url = urlHelper('ls', _this.env['PWD']);
             if(url) {
                 $.getJSON(url, function(json, stat, xhr) {
                     $.each(json.respuesta.mensaje, function(i, v) {
@@ -341,13 +345,13 @@
             if(c[1] !== undefined) {
                 var carpeta = dirHelper(c[1]);
                 var url = urlHelper('cd', carpeta);
-                url = url + '&PWD=' + env['PWD'];
+                url = url + '&PWD=' + _this.env['PWD'];
                 if(url) {
                     $.getJSON(url, function(json, stat, xhr) {
                         if(json.respuesta.res == 1)
                             print(json.respuesta.mensaje);
                         else
-                            env['PWD'] = json.respuesta.mensaje;
+                            _this.env['PWD'] = json.respuesta.mensaje;
                         newLine();
                     }).error(function(){throw 'Server script doesn\'t exist.'});
                 } else newLine();
@@ -356,11 +360,10 @@
             }
         },
         "rm": function(c) {
-            if(!isAdmin()) return;
             if(c[1] !== undefined) {
                 var file = dirHelper(c[1]);
                 var url = urlHelper('rm', file);
-                url = url + '&PWD=' + env['PWD'];
+                url = url + '&PWD=' + _this.env['PWD'];
                 if(url) {
                     $.getJSON(url, function(json, stat, xhr) {
                         if(json.respuesta.res == 1)
@@ -374,11 +377,10 @@
             }
         },
         "rmdir": function(c) {
-            if(!isAdmin()) return;
             if(c[1] !== undefined) {
                 var file = dirHelper(c[1]);
                 var url = urlHelper('rmdir', file);
-                url = url + '&PWD=' + env['PWD'];
+                url = url + '&PWD=' + _this.env['PWD'];
                 if(url) {
                     $.getJSON(url, function(json, stat, xhr) {
                         if(json.respuesta.res == 1)
@@ -391,25 +393,23 @@
                 newLine();
             }
         },
-        "sudo": function(c) {
-            if(c[1] == 'su') {
-                if(c[2] !== undefined) {
-                    var url = urlHelper('sudo su', window.MD5(c[2]));
-                    if(url) {
-                        $.getJSON(url, function(json, stat, xhr) {
-                            if(json.respuesta.res == 1)
-                                print(json.respuesta.mensaje);
-                            else
-                                env['USER'] = json.respuesta.mensaje;
-                            newLine();
-                        });
-                    }
-                } else {
-                    print('No password given');
-                    newLine();
+        "login": function(c) {
+            if(c[1] !== undefined) {
+                var url = urlHelper('login', c[1]) + '&password=' + (c[2] !== undefined ? MD5(c[2]) : 'null');
+                if(url) {
+                    $.getJSON(url, function(json, stat, xhr) {
+                        if(json.respuesta.res == 1)
+                            print(json.respuesta.mensaje);
+                        else
+                            _this.env['USER'] = json.respuesta.mensaje;
+                        newLine();
+                    });
                 }
-            } else
+            } else {
+                print('No user/password given');
+                print('Usage: login USER [PASSWORD]');
                 newLine();
+            }
         },
         "none": function(c) {
             if(c[0] !== "")
@@ -445,20 +445,21 @@
         $(line).find("span#g").empty().append(str);
     },
     newLine = function() {
-        var lines = $(element).find(".consola-line").length;
+        var lines = $(_this.element).find(".consola-line").length;
         $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>');
-        $($(".consola .consola-line")[lines]).find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ");
-        $(element).scrollTop(100000);
+        $($(".consola .consola-line")[lines]).find("span#t").text('sh-3.2# '+_this.env["PWD"]+" "+_this.env["USER"]+"$ ");
+        $(_this.element).scrollTop(100000);
     },
     urlHelper = function(command, arg) {
-        var conf = window.webterminal.prototype.conf;
+        var conf = _this.conf;
         if(conf.server === true) {
             if(conf.script == 'node.js') {
-                return document.location.protocol == 'file:' ? 'http://localhost:8080/' + command + '/?0=' + encodeURI(arg) : document.location.protocol + "//"
-                    + document.location.hostname + ":8080/" + command + '/?0=' + encodeURI(arg);
+                var url = document.location.protocol == 'file:' ? 'http://localhost:8080/' : document.location.protocol + "//"  + document.location.hostname + ":8080/";
+                url = url + command + '/?0=' + encodeURI(arg) + '&USER=' + _this.env['USER'];
+                return url;
             } else if(conf.script == 'php') {
-                return document.location.protocol == 'file:' ? 'http://localhost/server.php?c=' + command + '&0=' + encodeURI(arg) : document.location.protocol + "//"
-                    + document.location.hostname + conf.phpscript + 'server.php?c=' + command + '&0=' + encodeURI(arg);
+                return document.location.protocol == 'file:' ? 'http://localhost/server.php?c=' + command + '&0=' + encodeURI(arg) + '&USER=' + _this.env['USER'] : document.location.protocol + "//"
+                    + document.location.hostname + conf.phpscript + 'server.php?c=' + command + '&0=' + encodeURI(arg) + '&USER=' + _this.env['USER'];
             } else {
                 throw 'The value for `server` is true but you don\'t give a correct value for `script` [node.js, php]';
             }
@@ -477,14 +478,6 @@
             var carpeta = folder;
         }
         return carpeta;
-    },
-    isAdmin = function() {
-        if(env['USER'] != 'root') {
-                print('This command require special magical power :/');
-                newLine();
-                return false;
-            } else
-                return true;
     };
     //El loop del efecto del cursor de texto
     (loop = function() {
@@ -513,20 +506,16 @@
         this.help = $.extend({}, help, nhelp);
         this.historial = [];
 
-        this.init(this.conf, this.shell, this.env, this.help);
+        this.init();
     }
 
     Plugin.prototype = {
-        init: function(conf, shell, env, help) {
-            Plugin.prototype.conf = conf;
-            Plugin.prototype.shell = shell;
-            Plugin.prototype.env = env;
-            Plugin.prototype.help = help;
+        init: function() {
             (function(d, s, id) {
                 var js, fjs = d.getElementsByTagName(s)[0];
                 if (d.getElementById(id)) return;
                 js = d.createElement(s); js.id = id;
-                js.src = "md5.min.js";
+                js.src = "lib/md5.min.js";
                 fjs.parentNode.insertBefore(js, fjs);
             }(document, 'script', 'md5'));
 
@@ -558,20 +547,16 @@
                 var js, fjs = d.getElementsByTagName(s)[0];
                 if (d.getElementById(id)) return;
                 js = d.createElement(s); js.id = id;
-                js.src = "lang/" + idioma + ".js";
+                js.src = "lib/lang/" + idioma + ".js";
                 fjs.parentNode.insertBefore(js, fjs);
             }(document, 'script', 'webterminal-lang'));
         },
         console: function() {
             //Consola
-            element = this.element;
-            shell = this.shell;
-            env = this.env;
-            help = this.help;
-            historial = this.historial;
+            _this = this;
             $(document).keydown(function(e) {
                 var keyCode = e.originalEvent.keyIdentifier,//e.which,
-                lines = $(element).find(".consola-line").length,
+                lines = $(_this.element).find(".consola-line").length,
                 line = $(".consola-line")[lines-1];
                 if(e.metaKey || (e.ctrlKey && keyCode == 82) || (e.ctrlKey && keyCode == 84))
                     return;
@@ -579,9 +564,9 @@
 
                 //console.log(keyCode);
                 if($(".consola").length === 0)
-                    $(element).append('<div class="consola"></div>').find("span#l").remove();
+                    $(_this.element).append('<div class="consola"></div>').find("span#l").remove();
                 if(lines === 0)
-                    $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ");
+                    $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text('sh-3.2# '+_this.env["PWD"]+" "+_this.env["USER"]+"$ ");
                 else if(!e.shiftKey && !e.altKey && chars[keyCode] !== undefined)
                     append(chars[keyCode]);
                 else if(keyCode == 'U+0008') //Eliminar caracter
@@ -594,13 +579,13 @@
                     $(line).find("span#l").remove();
                     $(line).append("<br>");
                     var comando = $(line).find("span#g").text().split(" ");
-                    historial[historial.length] = $(line).find("span#g").text();
+                    _this.historial[_this.historial.length] = $(line).find("span#g").text();
                     $.each(comando, function(a, b) { //Busca variables en el comando
                         if(b.search("$") != -1) {
                             var vars = b.split("$").length - 1, i = 0;
                             while(i < vars) {
                                 var variable = b.split("$")[1];
-                                var sustituto = env[variable];
+                                var sustituto = _this.env[variable];
                                 if(sustituto !== undefined)
                                     comando[a] = sustituto;
                                 else
@@ -609,45 +594,45 @@
                             }
                         }
                     });
-                    if(shell[comando[0]] !== undefined && comando[0] !== undefined) {
+                    if(_this.shell[comando[0]] !== undefined && comando[0] !== undefined) {
                         try {
-                            shell[comando[0]](comando);
+                            _this.shell[comando[0]](comando);
                         } catch(e) {
                             print('<span style="color:red">&gt;&nbsp;Has ocurred an error. See dev tools console</span>');
                             newLine();
                             throw e;
                         }
                     }
-                    else if(shell[comando[0]] === undefined && comando[0] !== undefined)
-                            shell["none"](comando);
+                    else if(_this.shell[comando[0]] === undefined && comando[0] !== undefined)
+                            _this.shell["none"](comando);
                 } else if(keyCode === 'Up') { //Arriba
                     if($(line).find('span#g').data('historial') === undefined) {
-                        $(line).find("span#g").empty().data('historial', historial.length - 1);
-                        var comando = historial[historial.length - 1];
+                        $(line).find("span#g").empty().data('historial', _this.historial.length - 1);
+                        var comando = _this.historial[_this.historial.length - 1];
                         append(comando);
                     } else {
                         var num = parseInt($(line).find('span#g').data('historial')) - 1,
-                        comando = historial[num];
-                        if(num <= historial.length && num >= 0) {
+                        comando = _this.historial[num];
+                        if(num <= _this.historial.length && num >= 0) {
                             $(line).find("span#g").empty().data('historial', num);
                             append(comando);
                         }
                     }
                 } else if(keyCode === 'Down') { //Abajo
                     if($(line).find('span#g').data('historial') === undefined) {
-                        $(line).find("span#g").empty().data('historial', historial.length + 1);
-                        var comando = historial[historial.length + 1];
+                        $(line).find("span#g").empty().data('historial', _this.historial.length + 1);
+                        var comando = _this.historial[_this.historial.length + 1];
                     } else {
                         var num = parseInt($(line).find('span#g').data('historial')) + 1,
-                        comando = historial[num];
-                        if(num <= historial.length && num >= 0) {
+                        comando = _this.historial[num];
+                        if(num <= _this.historial.length && num >= 0) {
                             $(line).find("span#g").empty().data('historial', num);
                             append(comando);
                         }
                     }
                 }
-                $(element).scrollTop(100000);
-                if($(element).height() < $(".consola").height())
+                $(_this.element).scrollTop(100000);
+                if($(_this.element).height() < $(".consola").height())
                     $(".consola-line").addClass("consola-line-short");
             });
         }
@@ -661,27 +646,17 @@
                     $.data(this, 'plugin_' + pluginName, new Plugin(this, conf, options, opt, o));
                 }
             });
-        } else if (typeof options === 'string' && options[0] !== '_' && options !== 'init') {
-            return this.each(function () {
-                var instance = $.data(this, 'plugin_' + pluginName);
-                if (instance instanceof Plugin && typeof instance[options] === 'function') {
-                    instance[options].apply(instance, Array.prototype.slice.call(args, 1));
-                }
-                if (options === 'destroy') {
-                    $.data(this, 'plugin_' + pluginName, null);
-                }
-            });
         }
     };
 
     $[pluginName] = function(options) {
-        return $(".console").webterminal($(".console"));
+        return $(".console").webterminal(options.element, options.conf, options.shell, options.help, options.env);
     };
-    
-    $[pluginName].env = env;
-    $[pluginName].shell = shell;
-    $[pluginName].print = print;
-    $[pluginName].help = help;
+console.log(this);
+    $[pluginName].env = _this.env;
+    $[pluginName].shell = _this.shell;
+    $[pluginName].print = _this.print;
+    $[pluginName].help = _this.help;
     $[pluginName].newLine = newLine;
     $[pluginName].urlHelper = urlHelper;
     $[pluginName].dirHelper = dirHelper;

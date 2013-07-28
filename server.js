@@ -2,9 +2,12 @@
 var http = require('http');
 var fs = require('fs');
 var qs = require('querystring');
-var crypto = require('crypto');
-var password = ''; //EDITME
 
+var
+//Is Admin function
+isAdmin = function() {
+    return users[user].range === 1;
+},
 //Commands functions
 commands = {
     'cd': function(json) {
@@ -35,48 +38,61 @@ commands = {
         return json;
     },
     'rm': function(json) {
-        try {
-            var err = fs.unlinkSync(query['0']);
-        } catch(Exception) {
-            var err = Exception;
-        }
-        if(err == undefined) {
-            json.respuesta.mensaje = true;
-            json.respuesta.res = 0;
-        } else if(err.errno == 50) {
-            json.respuesta.mensaje = query[0] + ': is a directory';
-            json.respuesta.res = 1;
-        } else if(err.errno == 34) {
-            json.respuesta.mensaje = query[0] + ': no such file or directory';
+        if(isAdmin()) {
+            try {
+                var err = fs.unlinkSync(query['0']);
+            } catch(Exception) {
+                var err = Exception;
+            }
+            if(err == undefined) {
+                json.respuesta.mensaje = true;
+                json.respuesta.res = 0;
+            } else if(err.errno == 50) {
+                json.respuesta.mensaje = query[0] + ': is a directory';
+                json.respuesta.res = 1;
+            } else if(err.errno == 34) {
+                json.respuesta.mensaje = query[0] + ': no such file or directory';
+                json.respuesta.res = 1;
+            }
+        } else {
+            json.respuesta.mensaje = 'This command require special magical powers, ' + user;
             json.respuesta.res = 1;
         }
         return json;
     },
     'rmdir': function(json) {
-        try {
-            var err = fs.rmdirSync(query['0']);
-        } catch(Exception) {
-            var err = Exception;
-        }
-        if(err == undefined) {
-            json.respuesta.mensaje = true;
-            json.respuesta.res = 0;
-        } else if(err.errno == 27) {
-            json.respuesta.mensaje = query[0] + ': Not a directory';
-            json.respuesta.res = 1;
-        } else if(err.errno == 34) {
-            json.respuesta.mensaje = query[0] + ': no such file or directory';
+        if(isAdmin()) {
+            try {
+                var err = fs.rmdirSync(query['0']);
+            } catch(Exception) {
+                var err = Exception;
+            }
+            if(err == undefined) {
+                json.respuesta.mensaje = true;
+                json.respuesta.res = 0;
+            } else if(err.errno == 27) {
+                json.respuesta.mensaje = query[0] + ': Not a directory';
+                json.respuesta.res = 1;
+            } else if(err.errno == 34) {
+                json.respuesta.mensaje = query[0] + ': no such file or directory';
+                json.respuesta.res = 1;
+            }
+        } else {
+            json.respuesta.mensaje = 'This command require special magical powers, ' + user;
             json.respuesta.res = 1;
         }
         return json;
     },
-    'sudo%20su': function(json) {
-        if(query['0'] == crypto.createHash('md5').update(password).digest('hex')) {
-            json.respuesta.mensaje = 'root';
+    'login': function(json) {
+        if(users[query['0']] && (users[query['0']].password == null || users[query['0']].password == query['password'])) {
+            json.respuesta.mensaje = query['0'];
             json.respuesta.res = 0;
+        } else if(users[query['0']] === undefined) {
+            json.respuesta.mensaje = 'User ' + query["0"] + ' doesn\'t exist';
+            json.respuesta.res = 1;
         } else {
             json.respuesta.mensaje = 'Password don\'t match';
-            json.respuesta.mensaje = 1;
+            json.respuesta.res = 1;
         }
         return json;
     }
@@ -88,7 +104,9 @@ http.createServer(function(req, res) {
     var url = req.url,
         comando = url.substr(1, url.indexOf('?') - 2);
     var json = {pedido: {}, respuesta: {}};
-        query = qs.parse(url.substr(url.lastIndexOf('?') + 1));
+        query = qs.parse(url.substr(url.lastIndexOf('?') + 1)),
+        user = query['user'],
+        users = JSON.parse(fs.readFileSync('lib/users.json', {encoding:'utf-8'}));
     json.pedido.url = url;
     json.pedido.comando = comando;
     json.pedido.query = query;
