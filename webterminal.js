@@ -207,17 +207,17 @@
         conf = _this.conf;
         if (conf.server === true) {
             if (conf.script === "node.js") {
-                url = document.location.protocol === "file:" ? "http://localhost:8080/" : document.location.protocol + "//" + document.location.hostname + ":8080/";
+                url = document.location.protocol === "file:" ? "http://localhost:8080/" : "http://" + document.location.hostname + ":8080/";
                 url = url + command + "/?0=" + encodeURI(arg) + "&USER=" + _this.env["USER"];
                 return url;
             } else if (conf.script === "php") {
                 if (document.location.protocol === "file:") {
                     return "http://localhost/server.php?c=" + command + "&0=" + encodeURI(arg) + "&USER=" + _this.env["USER"];
                 } else {
-                    return "" + document.location.protocol + "//                " + document.location.hostname + conf.phpscript + "server.php?c=" + command + "&0=" + encodeURI(arg) + "&USER=" + _this.env["USER"];
+                    return "http://                " + document.location.hostname + conf.phpscript + "server.php?c=" + command + "&0=" + encodeURI(arg) + "&USER=" + _this.env["USER"];
                 }
             } else {
-                throw "The value for `server` is true but you don't give a correct value for `script` [node.js, php]";
+                throw $.webterminal.idioma.scriptError;
             }
         }
     };
@@ -231,8 +231,14 @@
                     return carpeta += v + "/";
                 }
             });
+            if (folder.indexOf("../") !== -1) {
+                carpeta = folder.replace("../", carpeta);
+            }
         } else if (folder === "." || folder === "./") {
             carpeta = _this.env["PWD"];
+            if (folder.indexOf("./") !== -1) {
+                carpeta = folder.replace("./", carpeta);
+            }
         } else {
             carpeta = folder;
         }
@@ -309,9 +315,13 @@
             url = urlHelper("ls", _this.env["PWD"]);
             if (url) {
                 return $.getJSON(url, function(json, stat, xhr) {
-                    $.each(json.respuesta.mensaje, function(i, v) {
-                        return print(v);
-                    });
+                    if (json.respuesta.res === 0) {
+                        $.each(json.respuesta.mensaje, function(i, v) {
+                            return print(v);
+                        });
+                    } else {
+                        print(json.respuesta.mensaje);
+                    }
                     return newLine();
                 }).error(function() {
                     throw "Server script doesn't exist.";
@@ -390,6 +400,52 @@
                 return newLine();
             }
         },
+        touch: function(c) {
+            var fileName, url;
+            if (c[1] !== void 0) {
+                fileName = dirHelper(c[1]);
+                url = urlHelper("touch", c[1]);
+                url = url + "&PWD=" + _this.env["PWD"];
+                if (url) {
+                    return $.getJSON(url, function(json, stat, xhr) {
+                        if (json.respuesta.res === 1) {
+                            print(json.respuesta.mensaje);
+                        }
+                        return newLine();
+                    }).error(function() {
+                        throw "Server script doesn't exist.";
+                    });
+                } else {
+                    return newLine();
+                }
+            } else {
+                print("usage: touch fileName");
+                return newLine();
+            }
+        },
+        mkdir: function(c) {
+            var fileName, url;
+            if (c[1] !== void 0) {
+                fileName = dirHelper(c[1]);
+                url = urlHelper("mkdir", c[1]);
+                url = url + "&PWD=" + _this.env["PWD"];
+                if (url) {
+                    return $.getJSON(url, function(json, stat, xhr) {
+                        if (json.respuesta.res === 1) {
+                            print(json.respuesta.mensaje);
+                        }
+                        return newLine();
+                    }).error(function() {
+                        throw "Server script doesn't exist.";
+                    });
+                } else {
+                    return newLine();
+                }
+            } else {
+                print("usage: mkdir directoryName");
+                return newLine();
+            }
+        },
         login: function(c) {
             var url;
             if (c[1] !== void 0) {
@@ -419,12 +475,12 @@
             return newLine();
         }
     };
-    Plugin = function(element, nconf, nshell, nenv, nhelp) {
+    Plugin = function(element, options) {
         this.element = element;
-        this.conf = $.extend({}, conf, nconf);
-        this.shell = $.extend({}, shell, nshell);
-        this.env = $.extend({}, env, nenv);
-        this.help = $.extend({}, help, nhelp);
+        this.conf = $.extend({}, conf, options.conf);
+        this.shell = $.extend({}, shell, options.shell);
+        this.env = $.extend({}, env, options.env);
+        this.help = $.extend({}, help, options.help);
         this.historial = [];
         return this.init();
     };
@@ -444,6 +500,7 @@
             this._showTerm();
             this.lang();
             this.enLaBusquedaDelTextoPerdido();
+            this._fill(true);
             return this.console();
         },
         _showTerm: function() {
@@ -498,6 +555,7 @@
                     return;
                 }
                 e.preventDefault();
+                _this._fill(false);
                 if ($(".consola").length === 0) {
                     $(_this.element).append('<div class="consola"></div>').find("span#l").remove();
                 }
@@ -578,27 +636,40 @@
                     return $(".consola-line").addClass("consola-line-short");
                 }
             });
+        },
+        _fill: function(first) {
+            if (first === true) {
+                $[pluginName].shell = this.shell;
+                $[pluginName].print = print;
+                $[pluginName].help = this.help;
+                $[pluginName].newLine = newLine;
+                $[pluginName].urlHelper = urlHelper;
+                $[pluginName].dirHelper = dirHelper;
+                $[pluginName].conf = this.conf;
+            }
+            return $[pluginName].env = this.env;
         }
     };
-    $.fn[pluginName] = function(conf, options, opt, o) {
+    $.fn[pluginName] = function(options) {
         var args;
         args = arguments;
         if (options === void 0 || typeof options === "object") {
             return this.each(function() {
                 if (!$.data(this, "plugin_" + pluginName)) {
-                    return $.data(this, "plugin_" + pluginName, new Plugin(this, conf, options, opt, o));
+                    return $.data(this, "plugin_" + pluginName, new Plugin(this, options === void 0 ? {} : options));
                 }
             });
         }
     };
     $[pluginName] = function(options) {
-        return $(".console").webterminal(options.element, options.conf, options.shell, options.help, options.env);
+        return $(".console").webterminal(options.element, options);
     };
     _this = Plugin.prototype;
     $[pluginName].env = _this.env;
     $[pluginName].shell = _this.shell;
-    $[pluginName].print = _this.print;
+    $[pluginName].print = print;
     $[pluginName].help = _this.help;
+    $[pluginName].conf = _this.conf;
     $[pluginName].newLine = newLine;
     $[pluginName].urlHelper = urlHelper;
     $[pluginName].dirHelper = dirHelper;

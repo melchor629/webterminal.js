@@ -32,14 +32,24 @@ commands = {
         return json;
     },
     'ls': function(json) {
-        json.respuesta.mensaje = fs.readdirSync(query['0']);
-        json.respuesta.res = 0;
+        try {
+            var out = fs.readdirSync(query['0']);
+        } catch(Exception) {
+            var err = Exception;
+        }
+        if(out) {
+            json.respuesta.mensaje = out;
+            json.respuesta.res = 0;
+        } else if(err) {
+            json.respuesta.mensaje = query[0] + ': Permission denied';
+            json.respuesta.res = 1;
+        }
         return json;
     },
     'rm': function(json) {
         if(isAdmin()) {
             try {
-                var err = fs.unlinkSync(query['0']);
+                var err = fs.unlinkSync(query.PWD + query['0']);
             } catch(Exception) {
                 var err = Exception;
             }
@@ -62,7 +72,7 @@ commands = {
     'rmdir': function(json) {
         if(isAdmin()) {
             try {
-                var err = fs.rmdirSync(query['0']);
+                var err = fs.rmdirSync(query.PWD + query['0']);
             } catch(Exception) {
                 var err = Exception;
             }
@@ -74,6 +84,46 @@ commands = {
                 json.respuesta.res = 1;
             } else if(err.errno == 34) {
                 json.respuesta.mensaje = query[0] + ': no such file or directory';
+                json.respuesta.res = 1;
+            }
+        } else {
+            json.respuesta.mensaje = 'This command require special magical powers, ' + user;
+            json.respuesta.res = 1;
+        }
+        return json;
+    },
+    'touch': function(json) {
+        if(isAdmin()) {
+            try {
+                fs.writeFileSync(query.PWD + query[0], '');
+            } catch(Exception) {
+                var err = Exception;
+            }
+            if(err == undefined) {
+                json.respuesta.mensaje = true;
+                json.respuesta.res = 0;
+            } else {
+                json.respuesta.mensaje = err.toString();
+                json.respuesta.res = 1;
+            }
+        } else {
+            json.respuesta.mensaje = 'This command require special magical powers, ' + user;
+            json.respuesta.res = 1;
+        }
+        return json;
+    },
+    'mkdir': function(json) {
+        if(isAdmin()) {
+            try {
+                fs.mkdirSync(query.PWD + query[0]);
+            } catch(Exception) {
+                var err = Exception;
+            }
+            if(err == undefined) {
+                json.respuesta.mensaje = true;
+                json.respuesta.res = 0;
+            } else {
+                json.respuesta.mensaje = err.toString();
                 json.respuesta.res = 1;
             }
         } else {
@@ -104,7 +154,7 @@ http.createServer(function(req, res) {
         comando = url.substr(1, url.indexOf('?') - 2);
     var json = {pedido: {}, respuesta: {}};
         query = qs.parse(url.substr(url.lastIndexOf('?') + 1)),
-        user = query['user'],
+        user = query['USER'],
         users = JSON.parse(fs.readFileSync('lib/users.json', {encoding:'utf-8'}));
     json.pedido.url = url;
     json.pedido.comando = comando;
@@ -115,7 +165,7 @@ http.createServer(function(req, res) {
         console.log('OUT: ' + json.respuesta.mensaje);
     } else {
         json.respuesta.mensaje = 'Ese comando no existe…';
-        json.respuesta.res = 1;
+        json.respuesta.res = 0;
     }
 
     res.write(JSON.stringify(json));

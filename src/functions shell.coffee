@@ -50,9 +50,12 @@ shell =
         url = urlHelper('ls', _this.env['PWD']);
         if url
             $.getJSON(url, (json, stat, xhr) ->
-                $.each(json.respuesta.mensaje, (i, v) ->
-                    print(v);
-                );
+                if json.respuesta.res is 0
+                    $.each(json.respuesta.mensaje, (i, v) ->
+                        print(v)
+                    );
+                else
+                    print json.respuesta.mensaje
                 newLine();
             ).error(()-> throw 'Server script doesn\'t exist.' );
         else
@@ -65,7 +68,7 @@ shell =
             url = url + '&PWD=' + _this.env['PWD'];
             if url
                 $.getJSON(url, (json, stat, xhr) ->
-                    if json.respuesta.res == 1
+                    if json.respuesta.res is 1
                         print(json.respuesta.mensaje);
                     else
                         _this.env['PWD'] = json.respuesta.mensaje;
@@ -82,7 +85,7 @@ shell =
             url = url + '&PWD=' + _this.env['PWD'];
             if url
                 $.getJSON(url, (json, stat, xhr) ->
-                    if json.respuesta.res == 1
+                    if json.respuesta.res is 1
                         print(json.respuesta.mensaje);
                     newLine();
                 ).error(-> throw 'Server script doesn\'t exist.' );
@@ -98,7 +101,7 @@ shell =
             url = url + '&PWD=' + _this.env['PWD'];
             if url
                 $.getJSON(url, (json, stat, xhr) ->
-                    if json.respuesta.res == 1
+                    if json.respuesta.res is 1
                         print(json.respuesta.mensaje);
                     newLine();
                 ).error(-> throw 'Server script doesn\'t exist.');
@@ -106,6 +109,38 @@ shell =
         else
             print('usage: rm directory');
             newLine();
+
+    "touch": (c) ->
+        if c[1] isnt undefined
+            fileName = dirHelper c[1]
+            url = urlHelper 'touch', c[1]
+            url = url + '&PWD=' + _this.env['PWD']
+            if url
+                $.getJSON(url, (json, stat, xhr) ->
+                    if json.respuesta.res is 1
+                        print json.respuesta.mensaje
+                    newLine()
+                ).error(-> throw 'Server script doesn\'t exist.');
+            else newLine()
+        else
+            print 'usage: touch fileName'
+            newLine()
+
+    "mkdir": (c) ->
+        if c[1] isnt undefined
+            fileName = dirHelper c[1]
+            url = urlHelper 'mkdir', c[1]
+            url = url + '&PWD=' + _this.env['PWD']
+            if url
+                $.getJSON(url, (json, stat, xhr) ->
+                    if json.respuesta.res is 1
+                        print json.respuesta.mensaje
+                    newLine()
+                ).error(-> throw 'Server script doesn\'t exist.');
+            else newLine()
+        else
+            print 'usage: mkdir directoryName'
+            newLine()
 
     "login": (c) ->
         if c[1] isnt undefined 

@@ -38,14 +38,14 @@ urlHelper = (command, arg) ->
     conf = _this.conf;
     if conf.server is true
         if conf.script == 'node.js'
-            url = if document.location.protocol == 'file:' then 'http://localhost:8080/' else document.location.protocol + "//"  + document.location.hostname + ":8080/";
+            url = if document.location.protocol == 'file:' then 'http://localhost:8080/' else "http://"  + document.location.hostname + ":8080/";
             url = url + command + '/?0=' + encodeURI(arg) + '&USER=' + _this.env['USER'];
             return url;
         else if(conf.script == 'php')
-            return if document.location.protocol == 'file:' then "http://localhost/server.php?c=#{command}&0=#{encodeURI(arg)}&USER=#{_this.env["USER"]}" else "#{document.location.protocol}//
+            return if document.location.protocol == 'file:' then "http://localhost/server.php?c=#{command}&0=#{encodeURI(arg)}&USER=#{_this.env["USER"]}" else "http://
                 #{document.location.hostname}#{conf.phpscript}server.php?c=#{command}&0=#{encodeURI(arg)}&USER=#{_this.env['USER']}"
         else
-            throw 'The value for `server` is true but you don\'t give a correct value for `script` [node.js, php]';
+            throw $.webterminal.idioma.scriptError;
 
 #Parses some special directions, like ../
 dirHelper = (folder) ->
@@ -56,8 +56,12 @@ dirHelper = (folder) ->
             if i < (split.length - 2)
                 carpeta += v + '/';
         );
+        if folder.indexOf('../') isnt -1
+            carpeta = folder.replace('../', carpeta)
     else if folder == '.' or folder == './'
         carpeta = _this.env['PWD'];
+        if folder.indexOf('./') isnt -1
+            carpeta = folder.replace('./', carpeta)
     else
         carpeta = folder;
     carpeta
