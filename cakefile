@@ -1,0 +1,84 @@
+#This script with console text with colours would be pretty cool :D
+fs = require 'fs'
+
+{print} = require 'sys'
+{spawn} = require 'child_process'
+
+full = (callback) ->
+    simpleBuild (code) ->
+        callback?() if code is 0
+        console.log 'Improving code...'
+        uglify = spawn 'uglifyjs', ['webterminal.js', '-b', '-o', 'webterminal.js']
+        uglify.on 'exit', (code) ->
+            console.log 'Build done, you\'ve got your webterminal.js compiled :)' if code is 0
+            console.log 'Build exited with code: ' + code if code isnt 0
+            console.timeEnd 'build'
+
+min = (callback) ->
+    simpleBuild (code) ->
+        callback?() if code is 0
+        console.log 'Minifing code...'
+        uglifymin = spawn 'uglifyjs', ['webterminal.js', '-c', '-o', 'webterminal.min.js']
+        uglifymin.on 'exit', (code) ->
+            fs.unlinkSync 'webterminal.js'
+            console.log 'Build done, you\'ve gout your webterminal.js compiled and minified :)' if code is 0
+            console.log 'Build exited with code: ' + code if code isnt 0
+            console.timeEnd 'build'
+
+complete = (callback) ->
+    simpleBuild (code) ->
+        callback?() if code is 0
+        console.log 'Improving code...'
+        uglify = spawn 'uglifyjs', ['webterminal.js', '-b', '-o', 'webterminal.js']
+        uglifymin = spawn 'uglifyjs', ['webterminal.js', '-c', '-o', 'webterminal.min.js']
+        uglify.on 'exit', (code) ->
+            console.log 'Minifing code...'
+            uglifymin.on 'exit', (code) ->
+                console.log 'Build done, you\'ve got webterminal.js and webterminal.min.js :D' if code is 0
+                console.log 'Build exited with code: ' + code if code isnt 0
+                console.timeEnd 'build'
+
+simpleBuild = (afterCallback) ->
+    console.time 'build'
+    console.log 'Compiling coffee...'
+    coffee = spawn 'coffee', ['-c', '-j', 'webterminal.js', 'src/']
+    coffee.stderr.on 'data', (data) ->
+        process.stderr.write data.toString()
+    coffee.stdout.on 'data', (data) ->
+        print data.toString()
+    coffee.on 'exit', afterCallback
+
+option '-b', '--build [BUILD]', 'Determine which build will do in Watch mode'
+
+task 'build:full', 'Build webterminal.js from src/', ->
+    full()
+task 'build:min', 'Build webterminal.min.js (minified) from src/', ->
+    min()
+task 'build', 'Build webterminal.js and webterminal.min.js', ->
+    complete()
+task 'build:simple', 'Build a non beatified webterminal.js', ->
+    simpleBuild (code) ->
+        console.log 'Build done' if code is 0
+        console.log 'Build exited with code: ' + code if code isnt 0
+        console.timeEnd 'build'
+task 'watch', 'Watch for changes and auto-builds, require -b', ->
+    if process.argv[3] and process.argv[3] in ['build', 'build:full', 'build:min', 'build:simple']
+        console.log 'Watching for changes...'
+        fs.watch 'src', (event, filename) ->
+            if filename.search('.coffee') isnt -1
+                console.log '\n' + filename + ' has changed, re building...'
+                invoke process.argv[3]
+    else
+        console.log 'You need to provide a valid --build argument, see `cake`'
+task 'test', 'Test the project', ->
+    console.log 'Opening server.js and webterminal.html'
+    console.log 'Remember to configure script of the html to the node.js server'
+    server = spawn 'node', ['server.js']
+    server.stderr.on 'data', (data) ->
+        process.stderr.write data.toString()
+    server.stdout.on 'data', (data) ->
+        process.stdout.write data.toString()
+    spawn 'open', ['webterminal.html']
+task 'test:watch', 'Test the project and watch for changes, require -b', ->
+    invoke 'test'
+    invoke 'watch'

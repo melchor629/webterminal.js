@@ -1,4 +1,3 @@
-#!/usr/local/bin/node
 var http = require('http');
 var fs = require('fs');
 var qs = require('querystring');

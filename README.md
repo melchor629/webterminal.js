@@ -114,6 +114,9 @@ In every help you have to make an array with 2 strings. The very short descripti
 Type `help` in the console and you will see the commands with its help. If you type `help salute` you will see the long description.
 You may have noticed that the second parameter is an empty array, again, we don't want to create new environment variables.
 
+## Build
+For build from the source (`src/`) you need firstly [node.js](http://nodejs.org), [uglify.js](https://github.com/mishoo/UglifyJS2) and [CoffeeScript](http://coffeescript.org). When you've installed them, node.js, uglify.js and CoffeeScript, you can build it. Open a terminal and go to the project directory. Then type `cake` and you will see a list of tasks you can use, see descriptions near every task. And also you can use the feature watch for auto-build the source when a file is changed. Ex.: `cake -b build:full watch` (*You have to put the argument in this way*).
+
 ## TODO List
 - [ ] Auto-detect the width of the console (_the selected `<div/>`_)
 - [X] If is pressed the key UP or DOWN, write the before commands
