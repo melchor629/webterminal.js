@@ -170,7 +170,15 @@
         echo: [ "[arg ...] prints the argument" ],
         env: [ "prints all the environment variables" ],
         "export": [ "sets a variable" ],
-        reload: [ "reload the console" ]
+        reload: [ "reload the console" ],
+        ls: [ "a list of files and directories of the cwd" ],
+        cd: [ "[directory] change the current working directory" ],
+        rm: [ "[file] delete a file" ],
+        rmdir: [ "[directory] removes a directory" ],
+        touch: [ "[filename] create a file" ],
+        mkdir: [ "[directoryname] create a folder" ],
+        login: [ "[user] [password] like sudo, but in a session" ],
+        cwd: [ "prints the cwd (Current Working Directory)" ]
     };
     version = "v0.2";
     pluginName = "webterminal";
@@ -265,10 +273,12 @@
                 $.each(help, function(a, b) {
                     return print("&nbsp;" + a + " " + b[0]);
                 });
-            } else if (c[1] && help[c[1]] !== void 0) {
+            } else if (c[1] && _this.help[c[1]] !== void 0) {
                 b = _this.help[c[1]];
                 print(c[1] + ": " + b[0]);
-                print(b[1]);
+                if (b[1]) {
+                    print(b[1]);
+                }
             } else if (help[c[1]] === void 0) {
                 print($.webterminal.idioma.shell.help["noHelp"] + " `" + c[1] + "`.");
             }
@@ -383,6 +393,9 @@
                 file = dirHelper(c[1]);
                 url = urlHelper("rmdir", file);
                 url = url + "&PWD=" + _this.env["PWD"];
+                if (c[2] === "-r") {
+                    url = url + "&recursive";
+                }
                 if (url) {
                     return $.getJSON(url, function(json, stat, xhr) {
                         if (json.respuesta.res === 1) {
@@ -445,6 +458,10 @@
                 print("usage: mkdir directoryName");
                 return newLine();
             }
+        },
+        cwd: function() {
+            print(_this.env["PWD"]);
+            return newLine();
         },
         login: function(c) {
             var url;
@@ -525,24 +542,19 @@
             isThere = false;
             $.each(disponible, function(i, v) {
                 if (!isThere) {
-                    return isThere = v === idioma;
+                    if (v.match(idioma)) {
+                        isThere = true;
+                        return idioma = v;
+                    }
                 }
             });
             if (!isThere) {
                 idioma = "en-gb";
             }
-            this.idioma = {};
-            return function(id) {
-                var fjs, js;
-                fjs = document.getElementsByTagName("script")[0];
-                if (document.getElementById(id)) {
-                    return;
-                }
-                js = document.createElement("script");
-                js.id = id;
-                js.src = "lib/lang/" + idioma + ".js";
-                return fjs.parentNode.insertBefore(js, fjs);
-            }("webterminal-lang");
+            return $.getJSON("lib/lang/" + idioma + ".json", function(json, stat, xhr) {
+                $.webterminal.idioma = json;
+                return Plugin.prototype.lang = json;
+            });
         },
         console: function() {
             _this = this;

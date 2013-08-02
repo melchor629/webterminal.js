@@ -132,24 +132,24 @@ if window.navigator.platform isnt 'MacIntel'
         '?': "U+00DB",
         '¿': "U+00DD",
         '_': "U+00BD"
-    });
+    })
     altChars = $.extend({}, altChars, {
         '[': 'U+00BA',
         ']': 'U+00BB',
         '{': 'U+00DE',
         '}': 'U+00BF'
-    });
+    })
 ch = {}
 sh = {}
 al = {}
 $.each(chars, (i, v) ->
-    ch[v] = i;
+    ch[v] = i
 )
 $.each(shiftChars, (i, v) ->
-    sh[v] = i;
+    sh[v] = i
 )
 $.each(altChars, (i, v) ->
-    al[v] = i;
+    al[v] = i
 )
 chars = ch
 shift_chars = sh

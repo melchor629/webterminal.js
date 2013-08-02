@@ -1,12 +1,12 @@
 Plugin = (element, options) ->
-    this.element = element;
-    this.conf = $.extend({}, conf, options.conf);
-    this.shell = $.extend({}, shell, options.shell);
-    this.env = $.extend({}, env, options.env);
-    this.help = $.extend({}, help, options.help);
-    this.historial = [];
+    this.element = element
+    this.conf = $.extend({}, conf, options.conf)
+    this.shell = $.extend({}, shell, options.shell)
+    this.env = $.extend({}, env, options.env)
+    this.help = $.extend({}, help, options.help)
+    this.historial = []
 
-    this.init();
+    this.init()
 
 
 Plugin.prototype =
@@ -42,19 +42,16 @@ Plugin.prototype =
         isThere = false
         $.each(disponible, (i, v) ->
             if not isThere
-                isThere = v == idioma
-        );
+                if v.match(idioma)
+                    isThere = true
+                    idioma = v
+        )
         if not isThere
             idioma = 'en-gb'
-        this.idioma = {}
-        ((id) ->
-            fjs = document.getElementsByTagName('script')[0]
-            if document.getElementById(id)
-                return
-            js = document.createElement('script'); js.id = id
-            js.src = "lib/lang/" + idioma + ".js"
-            fjs.parentNode.insertBefore(js, fjs)
-        )('webterminal-lang')
+        $.getJSON('lib/lang/' + idioma + '.json', (json, stat, xhr) ->
+            $.webterminal.idioma = json
+            Plugin.prototype.lang = json
+        )
 
     console: ->
         #Console
@@ -68,7 +65,7 @@ Plugin.prototype =
             e.preventDefault()
             _this._fill(false)
 
-            #console.log(keyCode);
+            #console.log(keyCode)
             if $(".consola").length is 0
                 $(_this.element).append('<div class="consola"></div>').find("span#l").remove()
             if lines is 0 

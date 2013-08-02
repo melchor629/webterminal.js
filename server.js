@@ -1,6 +1,8 @@
 var http = require('http');
 var fs = require('fs');
 var qs = require('querystring');
+var os = require('os');
+var version = 'v.0.2'
 
 var
 //Is Admin function
@@ -71,20 +73,41 @@ commands = {
     },
     'rmdir': function(json) {
         if(isAdmin()) {
-            try {
-                var err = fs.rmdirSync(query.PWD + query['0']);
-            } catch(Exception) {
-                var err = Exception;
-            }
-            if(err == undefined) {
+            if(query.recursive == "") {
+                function remdir(dir) {
+                    ls = fs.readdirSync(dir);
+                    for (var i = ls.length - 1; i >= 0; i--) {
+                        try {
+                            fs.unlinkSync(dir + '/'+  ls[i]);
+                        } catch(err) {
+                            if(err.errno == 50)
+                                remdir(dir + '/' + ls[i]);
+                        }
+                    };
+                    fs.rmdirSync(dir);
+                }
+                remdir(query.PWD + query['0']);
                 json.respuesta.mensaje = true;
-                json.respuesta.res = 0;
-            } else if(err.errno == 27) {
-                json.respuesta.mensaje = query[0] + ': Not a directory';
-                json.respuesta.res = 1;
-            } else if(err.errno == 34) {
-                json.respuesta.mensaje = query[0] + ': no such file or directory';
-                json.respuesta.res = 1;
+                json.respuesta.mensaje = 0;
+            } else {
+                try {
+                    var err = fs.rmdirSync(query.PWD + query['0']);
+                } catch(Exception) {
+                    var err = Exception;
+                }
+                if(err == undefined) {
+                    json.respuesta.mensaje = true;
+                    json.respuesta.res = 0;
+                } else if(err.errno == 27) {
+                    json.respuesta.mensaje = query[0] + ': Not a directory';
+                    json.respuesta.res = 1;
+                } else if(err.errno == 34) {
+                    json.respuesta.mensaje = query[0] + ': no such file or directory';
+                    json.respuesta.res = 1;
+                } else {
+                    json.respuesta.mensaje = query[0] + ': ' + err.toString();
+                    json.respuesta.res = 1;
+                }
             }
         } else {
             json.respuesta.mensaje = 'This command require special magical powers, ' + user;
@@ -149,7 +172,9 @@ commands = {
 
 //Server
 http.createServer(function(req, res) {
-    res.writeHead(200, {'Content-Type': 'text/json; charset=utf-8'});
+    res.writeHead(200, {'Content-Type': 'text/json; charset=utf-8',
+                        'Access-Control-Allow-Origin': '*',
+                        'Server': 'node.js (' + process.version + ') ' + os.platform() + ' ' + os.arch() + ' ' + os.release()});
     var url = req.url,
         comando = url.substr(1, url.indexOf('?') - 2);
     var json = {pedido: {}, respuesta: {}};
@@ -171,3 +196,6 @@ http.createServer(function(req, res) {
     res.write(JSON.stringify(json));
     res.end();
 }).listen(8080, '0.0.0.0');
+
+console.log('webterminal.js node server script ' + version);
+console.log('node.js (' + process.version + ') ' + os.type() + ' ' + os.arch() + ' ' + os.release() + '\n');

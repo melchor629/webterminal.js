@@ -6,13 +6,13 @@ line = $(".consola-line")[lines - 1]
 
 #Append a character in the current line
 append = (car) ->
-    line = getLine();
-    $(line).find("span#g").append(car);
+    line = getLine()
+    $(line).find("span#g").append(car)
 
 #Print something in the line, HTML is valid
 print = (str) ->
-    line = getLine();
-    $(line).find("span#g").append("<br>" + str);
+    line = getLine()
+    $(line).find("span#g").append("<br>" + str)
 
 #Get the current HTMLDomObject line
 getLine = ->
@@ -28,48 +28,48 @@ remove = ->
 
 #Create a new line, not \n
 newLine = ->
-    lines = $(_this.element).find(".consola-line").length;
-    $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>');
-    $($(".consola .consola-line")[lines]).find("span#t").text("sh-3.2# #{_this.env["PWD"]} #{_this.env["USER"]}$ ");
-    $(_this.element).scrollTop(100000);
+    lines = $(_this.element).find(".consola-line").length
+    $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>')
+    $($(".consola .consola-line")[lines]).find("span#t").text("sh-3.2# #{_this.env["PWD"]} #{_this.env["USER"]}$ ")
+    $(_this.element).scrollTop(100000)
 
 #Helps to create the url to the configured script
 urlHelper = (command, arg) ->
-    conf = _this.conf;
+    conf = _this.conf
     if conf.server is true
         if conf.script == 'node.js'
-            url = if document.location.protocol == 'file:' then 'http://localhost:8080/' else "http://"  + document.location.hostname + ":8080/";
-            url = url + command + '/?0=' + encodeURI(arg) + '&USER=' + _this.env['USER'];
-            return url;
+            url = if document.location.protocol == 'file:' then 'http://localhost:8080/' else "http://"  + document.location.hostname + ":8080/"
+            url = url + command + '/?0=' + encodeURI(arg) + '&USER=' + _this.env['USER']
+            return url
         else if(conf.script == 'php')
             return if document.location.protocol == 'file:' then "http://localhost/server.php?c=#{command}&0=#{encodeURI(arg)}&USER=#{_this.env["USER"]}" else "http://
                 #{document.location.hostname}#{conf.phpscript}server.php?c=#{command}&0=#{encodeURI(arg)}&USER=#{_this.env['USER']}"
         else
-            throw $.webterminal.idioma.scriptError;
+            throw $.webterminal.idioma.scriptError
 
 #Parses some special directions, like ../
 dirHelper = (folder) ->
     if folder.indexOf('..') isnt -1
         split = _this.env['PWD'].split '/'
-        carpeta = '';
+        carpeta = ''
         $.each(split, (i, v) ->
             if i < (split.length - 2)
-                carpeta += v + '/';
-        );
+                carpeta += v + '/'
+        )
         if folder.indexOf('../') isnt -1
             carpeta = folder.replace('../', carpeta)
     else if folder == '.' or folder == './'
-        carpeta = _this.env['PWD'];
+        carpeta = _this.env['PWD']
         if folder.indexOf('./') isnt -1
             carpeta = folder.replace('./', carpeta)
     else
-        carpeta = folder;
+        carpeta = folder
     carpeta
 
 #Loop of the text cursor
 (parpadeo = ()->
     if $('span#l').length is 0
-        $('body').append('<span id="l" style="display:none"></span>');
+        $('body').append('<span id="l" style="display:none"></span>')
     $('span#l').delay(600).animate({'opacity': 0}, 10)
-               .delay(600).animate({'opacity': 1}, 10, parpadeo);
-)();
+               .delay(600).animate({'opacity': 1}, 10, parpadeo)
+)()

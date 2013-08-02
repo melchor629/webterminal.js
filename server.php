@@ -1,4 +1,4 @@
-<?
+<? ini_set('track_errors', true);
 $users = json_decode(file_get_contents('lib/users.json'));
 function resp(&$json, $mensaje, $res) {
     $json['respuesta'] = array(
@@ -22,7 +22,8 @@ if(isset($_GET)) {
     $json['pedido'] = array(
         'comando' => $command,
         'query' => $arg,
-        'serverDir' => $serverDir
+        'serverDir' => $serverDir,
+        'PWD' => $PWD
     );
 
     switch($command) {
@@ -52,10 +53,8 @@ if(isset($_GET)) {
             break;
         case 'rm':
             if(isAdmin($user)) {
-                if(substr($arg, 0, 1) != '/')
-                    $serverDir = $serverDir.'/';
-                if(is_file($serverDir.$arg)) {
-                    unlink($serverDir.$arg);
+                if(is_file($serverDir.$PWD.$arg)) {
+                    unlink($serverDir.$PWD.$arg);
                     resp($json, true, 0);
                 } elseif(is_dir($serverDir.$arg))
                     resp($json, $arg . ': is a directory', 1);
@@ -66,15 +65,55 @@ if(isset($_GET)) {
             break;
         case 'rmdir':
             if(isAdmin($user)) {
-                if(substr($arg, 0, 1) != '/')
-                    $serverDir = $serverDir.'/';
-                if(is_dir($serverDir.$arg)) {
-                    rmdir($serverDir.$arg);
-                    resp($json, true, 0);
-                } elseif(is_file($serverDir.$arg))
+                $recursive = isset($_GET['recursive']);
+                if(is_dir($serverDir.$PWD.$arg)) {
+                    if($recursive) {
+                        $dir = $serverDir.$PWD.$arg;
+                        function remdir($dir) {
+                            if(!$dh = @opendir($dir)) return;
+                            while (false !== ($obj = readdir($dh))) {
+                                if($obj=='.' || $obj=='..') continue;
+                                if (!@unlink($dir.'/'.$obj)) remdir($dir.'/'.$obj);
+                            }
+                            closedir($dh);
+                            @rmdir($dir);
+                        }
+                        remdir($dir);
+                    } else {
+                        $r = @rmdir($serverDir.$PWD.$arg);
+                        if($r === true)
+                            resp($json, true, 0);
+                        else
+                            resp($json, $arg.': '.$php_errormsg, 1);
+                    }
+                } elseif(is_file($serverDir.$PWD.$arg))
                     resp($json, $arg . ': Not a directory', 1);
                 else
                     resp($json, $arg . ': No such file or directory', 1);
+            } else
+                resp($json , 'This command require special magical powers, ' . $user, 1);
+            break;
+        case 'touch':
+            if(isAdmin($user)) {
+                $result = @touch($serverDir.$PWD.$arg);
+                if($result === true) {
+                    resp($json, true, 0);
+                } else {
+                    if(is_dir($serverDir.$arg))
+                        resp($json, $arg. ': is a directory', 1);
+                    else
+                        resp($json, $arg.': '.$php_errormsg, 1);
+                }
+            } else
+                resp($json , 'This command require special magical powers, ' . $user, 1);
+            break;
+        case 'mkdir':
+            if(isAdmin($user)) {
+                $result = @mkdir($serverDir.$PWD.$arg);
+                if($result === true)
+                    resp($json, true, 0);
+                else
+                    resp($json, $arg.': '.$php_errormsg, 1);
             } else
                 resp($json , 'This command require special magical powers, ' . $user, 1);
             break;

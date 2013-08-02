@@ -3,6 +3,10 @@ webterminal.js
 
 A terminal emulator for the web.
 It's inspired in the bash environment, to entertain it, as in this 404 example: [SrRBR007 404' error page](http://srrbr007.tk/melchor629/404.htm). If you clone the repository, you can open the *webterminal.html* and prove the project in a Mac-like terminal :P.
+Sizes:                  Uncompressed G-Zipped
+    webterminal.js      ~25,2kb      ~4,8kb
+    webterminal.min.js  ~13,7kb      ~4,1kb
+not bad ·_·
 
 ## Basic usage
 It's easy to use. You, firstly, need a html file with the basics `<head> <body>` and create a `<div>` with a class identifier. Ex.:
