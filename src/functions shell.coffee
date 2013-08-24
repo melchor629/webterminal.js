@@ -5,14 +5,21 @@ shell =
             print($.webterminal.idioma.shell.help[1])
             print($.webterminal.idioma.shell.help[2])
             print($.webterminal.idioma.shell.help[3])
-            $.each(help, (a, b) ->
+            $.each(_this.lang.help, (a, b) ->
+                print("&nbsp;" + a + " " + b[0])
+            )
+            $.each(_this.help, (a, b) ->
                 print("&nbsp;" + a + " " + b[0])
             )
         else if c[1] and _this.help[c[1]] isnt undefined
             b = _this.help[c[1]]
             print(c[1] + ": " + b[0])
             print(b[1]) if b[1]
-        else if help[c[1]] is undefined
+        else if c[1] and _this.lang.help[c[1]] isnt undefined
+            b = _this.lang.help[c[1]]
+            print(c[1] + ": " + b[0])
+            print(b[1]) if b[1]
+        else if _this.help[c[1]] is undefined and _this.lang.help[c[1]] is undefined
             print($.webterminal.idioma.shell.help['noHelp'] + " `" + c[1] + "`.")
         newLine()
 
@@ -41,7 +48,7 @@ shell =
         newLine()
 
     "reload": () ->
-        $(element).delay(333).animate({'opacity':0}, 1111, () ->
+        $(_this.element).delay(333).animate({'opacity':0}, 1111, () ->
             window.location = window.location
         )
         print('Wait…<span id="l">_</span>')
@@ -65,7 +72,6 @@ shell =
         if c[1] isnt undefined
             carpeta = dirHelper(c[1])
             url = urlHelper('cd', carpeta)
-            url = url + '&PWD=' + _this.env['PWD']
             if url
                 $.getJSON(url, (json, stat, xhr) ->
                     if json.respuesta.res is 1
@@ -82,7 +88,6 @@ shell =
         if c[1] isnt undefined
             file = dirHelper(c[1])
             url = urlHelper('rm', file)
-            url = url + '&PWD=' + _this.env['PWD']
             if url
                 $.getJSON(url, (json, stat, xhr) ->
                     if json.respuesta.res is 1
@@ -98,7 +103,6 @@ shell =
         if c[1] isnt undefined
             file = dirHelper(c[1])
             url = urlHelper('rmdir', file)
-            url = url + '&PWD=' + _this.env['PWD']
             if c[2] is '-r'
                 url = url + '&recursive'
             if url
@@ -116,7 +120,6 @@ shell =
         if c[1] isnt undefined
             fileName = dirHelper c[1]
             url = urlHelper 'touch', c[1]
-            url = url + '&PWD=' + _this.env['PWD']
             if url
                 $.getJSON(url, (json, stat, xhr) ->
                     if json.respuesta.res is 1
@@ -132,7 +135,6 @@ shell =
         if c[1] isnt undefined
             fileName = dirHelper c[1]
             url = urlHelper 'mkdir', c[1]
-            url = url + '&PWD=' + _this.env['PWD']
             if url
                 $.getJSON(url, (json, stat, xhr) ->
                     if json.respuesta.res is 1
@@ -147,6 +149,30 @@ shell =
     "cwd": ->
         print _this.env['PWD']
         newLine()
+
+    "cat": (c) ->
+        #TODO add more functionality, because this command is simple but powerful
+        if c[1] isnt undefined and c[2] is undefined
+            fileName = encodeURI dirHelper c[1]
+            url = urlHelper 'cat', fileName
+            if url
+                $.getJSON(url, (json, stat, xhr) ->
+                    print '<div style="text-align:left;">'+json.respuesta.mensaje+'</div>'
+                    newLine()
+                ).error(-> throw 'Server script doesn\'t exist.')
+            else
+                newLine()
+        else if c[1] isnt undefined and c[2] isnt undefined
+            fileName1 = encodeURI dirHelper c[1]
+            fileName2 = encodeURI dirHelper c[2]
+            url = urlHelper 'cat', fileName1, fileName2
+            $.getJSON(url, (json, stat, xhr) ->
+                print json.respuesta.mensaje
+                newLine()
+            ).error(-> throw 'Server script doesn\'t exist.');
+        else
+            print 'usage: cat file'
+            newLine()
 
     "login": (c) ->
         if c[1] isnt undefined 

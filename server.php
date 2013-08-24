@@ -2,7 +2,7 @@
 $users = json_decode(file_get_contents('lib/users.json'));
 function resp(&$json, $mensaje, $res) {
     $json['respuesta'] = array(
-        'mensaje' => $mensaje,
+        'mensaje' => gettype($mensaje) == "string" ? utf8_encode($mensaje) : $mensaje,
         'res' => $res
     );
 }
@@ -116,6 +116,21 @@ if(isset($_GET)) {
                     resp($json, $arg.': '.$php_errormsg, 1);
             } else
                 resp($json , 'This command require special magical powers, ' . $user, 1);
+            break;
+        case 'cat':
+            if(is_file($serverDir.$PWD.$arg)) {
+                $out = file_get_contents($serverDir.$PWD.$arg);
+                $out = htmlentities($out);
+                $out = str_replace("  ", "&nbsp;&nbsp;", $out);
+                $out = str_replace("\n", "<br>", $out);
+                $out = str_replace("	", "&nbsp;&nbsp;&nbsp;&nbsp;", $out);
+                //var_dump($out);
+                resp($json, $out, 0);
+            } elseif(!is_file($serverDir.$PWD.$arg) && is_dir($serverDir.$PWD.$arg)) {
+                resp($json, $arg.': Is a directory', 1);
+            } elseif(!is_file($serverDir.$PWD.$arg) && !is_dir($serverDir.$PWD.$arg)) {
+                resp($json, $arg.': No such file or directory', 1);
+            }
             break;
         case 'login':
             $exist = array_key_exists($arg, $users);

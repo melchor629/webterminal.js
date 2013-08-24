@@ -9,6 +9,16 @@ var
 isAdmin = function() {
     return users[user].range === 1;
 },
+//File help functions
+exists = function(file) {
+    return fs.existsSync(file);
+},
+isDir = function(file) {
+    return fs.statSync(file).isDirectory();
+},
+isFile = function(file) {
+    return fs.statSync(file).isFile();
+},
 //Commands functions
 commands = {
     'cd': function(json) {
@@ -155,6 +165,23 @@ commands = {
         }
         return json;
     },
+    'cat': function(json) {
+        if(exists(query.PWD + query['0']) && isFile(query.PWD + query['0'])) {
+            out = fs.readFileSync(query['0'], {encoding: 'utf-8'});
+            out = out.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            out = out.replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+            out = out.replace(/\n/g, '<br>').replace(/  /g, '&nbsp;&nbsp;')
+            json.respuesta.mensaje = out;
+            json.respuesta.res = 0;
+        } else if(!exists(query.PWD + query['0'])) {
+            json.respuesta.mensaje = query['0'] + ': no such file or directory';
+            json.respuesta.res = 1;
+        } else if(isDir(query.PWD + query['0'])) {
+            json.respuesta.mensaje = query['0'] + ': Is a directory';
+            json.respuesta.res = 1;
+        }
+        return json;
+    },
     'login': function(json) {
         if(users[query['0']] && (users[query['0']].password == null || users[query['0']].password == query['password'])) {
             json.respuesta.mensaje = query['0'];
@@ -189,7 +216,7 @@ http.createServer(function(req, res) {
         json = commands[comando](json);
         console.log('OUT: ' + json.respuesta.mensaje);
     } else {
-        json.respuesta.mensaje = 'Ese comando no existe…';
+        json.respuesta.mensaje = '-bash: ' + comando + ': command not found';
         json.respuesta.res = 0;
     }
 

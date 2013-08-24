@@ -39,13 +39,21 @@ urlHelper = (command, arg) ->
     if conf.server is true
         if conf.script == 'node.js'
             url = if document.location.protocol == 'file:' then 'http://localhost:8080/' else "http://"  + document.location.hostname + ":8080/"
-            url = url + command + '/?0=' + encodeURI(arg) + '&USER=' + _this.env['USER']
-            return url
+            url = url + command + '/' + '?USER=' + _this.env['USER']
+            #return url
         else if(conf.script == 'php')
-            return if document.location.protocol == 'file:' then "http://localhost/server.php?c=#{command}&0=#{encodeURI(arg)}&USER=#{_this.env["USER"]}" else "http://
-                #{document.location.hostname}#{conf.phpscript}server.php?c=#{command}&0=#{encodeURI(arg)}&USER=#{_this.env['USER']}"
+            url = if document.location.protocol == 'file:' then "http://localhost/server.php?c=#{command}&USER=#{_this.env["USER"]}" else "http://
+                #{document.location.hostname}#{conf.phpscript}server.php?c=#{command}&USER=#{_this.env['USER']}"
         else
             throw $.webterminal.idioma.scriptError
+        o = 0;
+        for i in arguments
+            if _i isnt 0
+                url += '&' + (_i-1) + '=' + encodeURI arguments[_i]
+                o++
+        url += '&PWD=' + encodeURI _this.env.PWD + '&argc=' + o
+        url
+        
 
 #Parses some special directions, like ../
 dirHelper = (folder) ->

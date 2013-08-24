@@ -21,7 +21,8 @@
         "touch": ["[filename] crea un archivo"],
         "mkdir": ["[directoryname] crea una carpeta"],
         "login": ["[user] [password] como sudo, pero en sesión"],
-        "cwd": ["prints the cwd (Current Working Directory)"]
+        "cwd": ["imprime el cwd (Current Working Directory)"],
+        "cat": ["[file] imprime el contenido de un archivo", "Muestra el contenido de cualquier archivo. TODO add functionality"]
     },
     "scriptError": "El valor para `server` is true pero no has dado un valor correcto para `script` [node.js, php]"
 }

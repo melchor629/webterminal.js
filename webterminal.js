@@ -165,21 +165,7 @@
         SHELL: decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)) + "webterminal.js",
         USER: "guest"
     };
-    help = {
-        help: [ "Shows this help" ],
-        echo: [ "[arg ...] prints the argument" ],
-        env: [ "prints all the environment variables" ],
-        "export": [ "sets a variable" ],
-        reload: [ "reload the console" ],
-        ls: [ "a list of files and directories of the cwd" ],
-        cd: [ "[directory] change the current working directory" ],
-        rm: [ "[file] delete a file" ],
-        rmdir: [ "[directory] removes a directory" ],
-        touch: [ "[filename] create a file" ],
-        mkdir: [ "[directoryname] create a folder" ],
-        login: [ "[user] [password] like sudo, but in a session" ],
-        cwd: [ "prints the cwd (Current Working Directory)" ]
-    };
+    help = {};
     version = "v0.2";
     pluginName = "webterminal";
     _this = {};
@@ -211,22 +197,27 @@
         return $(_this.element).scrollTop(1e5);
     };
     urlHelper = function(command, arg) {
-        var url;
+        var i, o, url, _i, _len;
         conf = _this.conf;
         if (conf.server === true) {
             if (conf.script === "node.js") {
                 url = document.location.protocol === "file:" ? "http://localhost:8080/" : "http://" + document.location.hostname + ":8080/";
-                url = url + command + "/?0=" + encodeURI(arg) + "&USER=" + _this.env["USER"];
-                return url;
+                url = url + command + "/" + "?USER=" + _this.env["USER"];
             } else if (conf.script === "php") {
-                if (document.location.protocol === "file:") {
-                    return "http://localhost/server.php?c=" + command + "&0=" + encodeURI(arg) + "&USER=" + _this.env["USER"];
-                } else {
-                    return "http://                " + document.location.hostname + conf.phpscript + "server.php?c=" + command + "&0=" + encodeURI(arg) + "&USER=" + _this.env["USER"];
-                }
+                url = document.location.protocol === "file:" ? "http://localhost/server.php?c=" + command + "&USER=" + _this.env["USER"] : "http://                " + document.location.hostname + conf.phpscript + "server.php?c=" + command + "&USER=" + _this.env["USER"];
             } else {
                 throw $.webterminal.idioma.scriptError;
             }
+            o = 0;
+            for (_i = 0, _len = arguments.length; _i < _len; _i++) {
+                i = arguments[_i];
+                if (_i !== 0) {
+                    url += "&" + (_i - 1) + "=" + encodeURI(arguments[_i]);
+                    o++;
+                }
+            }
+            url += "&PWD=" + encodeURI(_this.env.PWD + "&argc=" + o);
+            return url;
         }
     };
     dirHelper = function(folder) {
@@ -270,7 +261,10 @@
                 print($.webterminal.idioma.shell.help[1]);
                 print($.webterminal.idioma.shell.help[2]);
                 print($.webterminal.idioma.shell.help[3]);
-                $.each(help, function(a, b) {
+                $.each(_this.lang.help, function(a, b) {
+                    return print("&nbsp;" + a + " " + b[0]);
+                });
+                $.each(_this.help, function(a, b) {
                     return print("&nbsp;" + a + " " + b[0]);
                 });
             } else if (c[1] && _this.help[c[1]] !== void 0) {
@@ -279,7 +273,13 @@
                 if (b[1]) {
                     print(b[1]);
                 }
-            } else if (help[c[1]] === void 0) {
+            } else if (c[1] && _this.lang.help[c[1]] !== void 0) {
+                b = _this.lang.help[c[1]];
+                print(c[1] + ": " + b[0]);
+                if (b[1]) {
+                    print(b[1]);
+                }
+            } else if (_this.help[c[1]] === void 0 && _this.lang.help[c[1]] === void 0) {
                 print($.webterminal.idioma.shell.help["noHelp"] + " `" + c[1] + "`.");
             }
             return newLine();
@@ -313,7 +313,7 @@
             return newLine();
         },
         reload: function() {
-            $(element).delay(333).animate({
+            $(_this.element).delay(333).animate({
                 opacity: 0
             }, 1111, function() {
                 return window.location = window.location;
@@ -345,7 +345,6 @@
             if (c[1] !== void 0) {
                 carpeta = dirHelper(c[1]);
                 url = urlHelper("cd", carpeta);
-                url = url + "&PWD=" + _this.env["PWD"];
                 if (url) {
                     return $.getJSON(url, function(json, stat, xhr) {
                         if (json.respuesta.res === 1) {
@@ -369,7 +368,6 @@
             if (c[1] !== void 0) {
                 file = dirHelper(c[1]);
                 url = urlHelper("rm", file);
-                url = url + "&PWD=" + _this.env["PWD"];
                 if (url) {
                     return $.getJSON(url, function(json, stat, xhr) {
                         if (json.respuesta.res === 1) {
@@ -392,7 +390,6 @@
             if (c[1] !== void 0) {
                 file = dirHelper(c[1]);
                 url = urlHelper("rmdir", file);
-                url = url + "&PWD=" + _this.env["PWD"];
                 if (c[2] === "-r") {
                     url = url + "&recursive";
                 }
@@ -418,7 +415,6 @@
             if (c[1] !== void 0) {
                 fileName = dirHelper(c[1]);
                 url = urlHelper("touch", c[1]);
-                url = url + "&PWD=" + _this.env["PWD"];
                 if (url) {
                     return $.getJSON(url, function(json, stat, xhr) {
                         if (json.respuesta.res === 1) {
@@ -441,7 +437,6 @@
             if (c[1] !== void 0) {
                 fileName = dirHelper(c[1]);
                 url = urlHelper("mkdir", c[1]);
-                url = url + "&PWD=" + _this.env["PWD"];
                 if (url) {
                     return $.getJSON(url, function(json, stat, xhr) {
                         if (json.respuesta.res === 1) {
@@ -462,6 +457,36 @@
         cwd: function() {
             print(_this.env["PWD"]);
             return newLine();
+        },
+        cat: function(c) {
+            var fileName, fileName1, fileName2, url;
+            if (c[1] !== void 0 && c[2] === void 0) {
+                fileName = encodeURI(dirHelper(c[1]));
+                url = urlHelper("cat", fileName);
+                if (url) {
+                    return $.getJSON(url, function(json, stat, xhr) {
+                        print('<div style="text-align:left;">' + json.respuesta.mensaje + "</div>");
+                        return newLine();
+                    }).error(function() {
+                        throw "Server script doesn't exist.";
+                    });
+                } else {
+                    return newLine();
+                }
+            } else if (c[1] !== void 0 && c[2] !== void 0) {
+                fileName1 = encodeURI(dirHelper(c[1]));
+                fileName2 = encodeURI(dirHelper(c[2]));
+                url = urlHelper("cat", fileName1, fileName2);
+                return $.getJSON(url, function(json, stat, xhr) {
+                    print(json.respuesta.mensaje);
+                    return newLine();
+                }).error(function() {
+                    throw "Server script doesn't exist.";
+                });
+            } else {
+                print("usage: cat file");
+                return newLine();
+            }
         },
         login: function(c) {
             var url;
