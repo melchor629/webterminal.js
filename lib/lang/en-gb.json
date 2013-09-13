@@ -22,7 +22,7 @@
         "mkdir": ["[directoryname] create a folder"],
         "login": ["[user] [password] like sudo, but in a session"],
         "cwd": ["prints the cwd (Current Working Directory)"],
-        "cat": ["[file] prints the file in the normal output", "Prints any file into the normal output. TODO add functionality"]
+        "cat": ["[-n -b] [file] prints the file in the normal output", "Prints any file into the normal output.\n\t-n Put the line number next the line\n\t-b Number the non-blank output lines"]
     },
     "scriptError": "The value for `server` is true but you don't give a correct value for `script` [node.js, php]"
 }

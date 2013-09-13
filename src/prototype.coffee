@@ -162,5 +162,4 @@ $[pluginName].conf = _this.conf
 $[pluginName].newLine = newLine
 $[pluginName].urlHelper = urlHelper
 $[pluginName].dirHelper = dirHelper
-
-window.webterminal = Plugin
+$[pluginName].errorFormat = errorFormat

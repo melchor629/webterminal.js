@@ -2,7 +2,7 @@ var http = require('http');
 var fs = require('fs');
 var qs = require('querystring');
 var os = require('os');
-var version = 'v.0.2'
+var version = 'v.0.2';
 
 var
 //Is Admin function

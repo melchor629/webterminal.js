@@ -1,3 +1,6 @@
+"use strict";
+window = this
+$ = window.$
 chars =
     'q': "U+0051",
     'w': "U+0057",

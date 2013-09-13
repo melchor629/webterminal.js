@@ -1,3 +1,7 @@
 # OS FILES
 ############
 .DS_STORE
+
+# Special
+###########
+*.fpng

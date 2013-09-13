@@ -74,6 +74,11 @@ dirHelper = (folder) ->
         carpeta = folder
     carpeta
 
+#Bash error message format
+errorFormat = (cmd, arg, msg) ->
+    print "#{cmd}: #{arg}: #{msg}"
+    newLine()
+
 #Loop of the text cursor
 (parpadeo = ()->
     if $('span#l').length is 0

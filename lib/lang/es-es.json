@@ -22,7 +22,7 @@
         "mkdir": ["[directoryname] crea una carpeta"],
         "login": ["[user] [password] como sudo, pero en sesión"],
         "cwd": ["imprime el cwd (Current Working Directory)"],
-        "cat": ["[file] imprime el contenido de un archivo", "Muestra el contenido de cualquier archivo. TODO add functionality"]
+        "cat": ["[-n -b] [file] imprime el contenido de un archivo", "Muestra el contenido de cualquier archivo.\n\t-n Enumera las lineas\n\t-b Enumera las lineas que no estén en blanco"]
     },
     "scriptError": "El valor para `server` is true pero no has dado un valor correcto para `script` [node.js, php]"
 }

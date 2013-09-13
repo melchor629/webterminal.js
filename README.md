@@ -48,7 +48,7 @@ I recommand to put this CSS code in the page where you want to use the console f
 `.console` is the main div used in the basic usage. I set a width and a height, and then I justify the text to have the appearence to a real console. Opacity set to 0 to allow the script to fade in the console at start. And finally, overflow is necessary.
 `.consola-line` is a div created by the script. You have to set the width manually (for now…).
 
-## Usage
+## Extended Usage
 ### Configuration
 The confugration is optional, but recommended because some commands need a server program which sends information to the client. The configuration is:
 ```javascript
@@ -138,6 +138,8 @@ In all the command functions, at the end of that you have to put this function: 
 For get the URL for a functions that connects with the node.js or php script this function will help you. Supplying the command and the argument to pass to the server, this function will return the URL ready to use. Ex.: `url = $.webterminal.urlHelper('kill', 'me');` the value of `url` will be (if the server is node.js) http://HOSTNAME:8080/kill/?0=me&USER=THEVAULEFORTHECURRENTUSER.
 ### .dirHelper(folder)
 Depending on the value of the argument `folder` will return a different value. For example, if you supply a value like `../` will return the parent directory of the current directory. If you supply `./` will return the same directory. And of you supply `/usr` will return `/usr`.
+### .errorFormat(cmd, arg, msg)
+Prints a Bash error message (Ex.: _cat: filename: No such file or directory_) passing the command executed (`cmd`), the argument with error (`arg`) and the error message (`msg`). Giving the before example, with this function you will write `$.webterminal.errorFormat('cat', 'filename', 'No such file or directory');`. __Watch out!__ This function calls for you `.newLine()`.
 
 ## TODO List
 - [ ] Auto-detect the width of the console (_the selected `<div/>`_)

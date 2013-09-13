@@ -1,5 +1,8 @@
 (function() {
-    var Plugin, al, altChars, alt_chars, append, ch, chars, conf, dirHelper, env, getLine, help, line, lines, newLine, parpadeo, pluginName, print, remove, sh, shell, shiftChars, shift_chars, urlHelper, version, _this;
+    "use strict";
+    var $, Plugin, al, altChars, alt_chars, append, ch, chars, conf, dirHelper, env, errorFormat, getLine, help, line, lines, newLine, parpadeo, pluginName, print, remove, sh, shell, shiftChars, shift_chars, urlHelper, version, window, _this;
+    window = this;
+    $ = window.$;
     chars = {
         q: "U+0051",
         w: "U+0057",
@@ -243,6 +246,10 @@
         }
         return carpeta;
     };
+    errorFormat = function(cmd, arg, msg) {
+        print("" + cmd + ": " + arg + ": " + msg);
+        return newLine();
+    };
     (parpadeo = function() {
         if ($("span#l").length === 0) {
             $("body").append('<span id="l" style="display:none"></span>');
@@ -277,7 +284,7 @@
                 b = _this.lang.help[c[1]];
                 print(c[1] + ": " + b[0]);
                 if (b[1]) {
-                    print(b[1]);
+                    print(b[1].replace(/\n/g, "<br>").replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;"));
                 }
             } else if (_this.help[c[1]] === void 0 && _this.lang.help[c[1]] === void 0) {
                 print($.webterminal.idioma.shell.help["noHelp"] + " `" + c[1] + "`.");
@@ -329,10 +336,10 @@
                         $.each(json.respuesta.mensaje, function(i, v) {
                             return print(v);
                         });
+                        return newLine();
                     } else {
-                        print(json.respuesta.mensaje);
+                        return errorFormat("ls", c[1], json.respuesta.mensaje);
                     }
-                    return newLine();
                 }).error(function() {
                     throw "Server script doesn't exist.";
                 });
@@ -348,11 +355,11 @@
                 if (url) {
                     return $.getJSON(url, function(json, stat, xhr) {
                         if (json.respuesta.res === 1) {
-                            print(json.respuesta.mensaje);
+                            return errorFormat("cd", c[1], json.respuesta.mensaje);
                         } else {
                             _this.env["PWD"] = json.respuesta.mensaje;
+                            return newLine();
                         }
-                        return newLine();
                     }).error(function() {
                         throw "Server script doesn't exist.";
                     });
@@ -371,9 +378,10 @@
                 if (url) {
                     return $.getJSON(url, function(json, stat, xhr) {
                         if (json.respuesta.res === 1) {
-                            print(json.respuesta.mensaje);
+                            return errorFormat("rm", c[1], json.respuesta.mensaje);
+                        } else {
+                            return newLine();
                         }
-                        return newLine();
                     }).error(function() {
                         throw "Server script doesn't exist.";
                     });
@@ -396,9 +404,10 @@
                 if (url) {
                     return $.getJSON(url, function(json, stat, xhr) {
                         if (json.respuesta.res === 1) {
-                            print(json.respuesta.mensaje);
+                            return errorFormat("rmdir", c[1], json.respuesta.mensaje);
+                        } else {
+                            return newLine();
                         }
-                        return newLine();
                     }).error(function() {
                         throw "Server script doesn't exist.";
                     });
@@ -418,9 +427,10 @@
                 if (url) {
                     return $.getJSON(url, function(json, stat, xhr) {
                         if (json.respuesta.res === 1) {
-                            print(json.respuesta.mensaje);
+                            return errorFormat("touch", c[1], json.respuesta.mensaje);
+                        } else {
+                            return newLine();
                         }
-                        return newLine();
                     }).error(function() {
                         throw "Server script doesn't exist.";
                     });
@@ -440,9 +450,10 @@
                 if (url) {
                     return $.getJSON(url, function(json, stat, xhr) {
                         if (json.respuesta.res === 1) {
-                            print(json.respuesta.mensaje);
+                            return errorFormat("mkdir", c[1], json.respuesta.mensaje);
+                        } else {
+                            return newLine();
                         }
-                        return newLine();
                     }).error(function() {
                         throw "Server script doesn't exist.";
                     });
@@ -459,14 +470,18 @@
             return newLine();
         },
         cat: function(c) {
-            var fileName, fileName1, fileName2, url;
+            var fileName, url;
             if (c[1] !== void 0 && c[2] === void 0) {
                 fileName = encodeURI(dirHelper(c[1]));
                 url = urlHelper("cat", fileName);
                 if (url) {
                     return $.getJSON(url, function(json, stat, xhr) {
-                        print('<div style="text-align:left;">' + json.respuesta.mensaje + "</div>");
-                        return newLine();
+                        if (json.respuesta.res !== 1) {
+                            print('<div style="text-align:left;">' + json.respuesta.mensaje + "</div>");
+                            return newLine();
+                        } else {
+                            return errorFormat("cat", c[1], json.respuesta.mensaje);
+                        }
                     }).error(function() {
                         throw "Server script doesn't exist.";
                     });
@@ -474,15 +489,64 @@
                     return newLine();
                 }
             } else if (c[1] !== void 0 && c[2] !== void 0) {
-                fileName1 = encodeURI(dirHelper(c[1]));
-                fileName2 = encodeURI(dirHelper(c[2]));
-                url = urlHelper("cat", fileName1, fileName2);
-                return $.getJSON(url, function(json, stat, xhr) {
-                    print(json.respuesta.mensaje);
+                if (c[1].indexOf("-" === 0)) {
+                    if (c[1] === "-n") {
+                        fileName = encodeURI(dirHelper(c[2]));
+                        url = urlHelper("cat", fileName);
+                        return $.getJSON(url, function(json, stat, xhr) {
+                            var out, slice;
+                            if (json.respuesta.res !== 1) {
+                                slice = json.respuesta.mensaje.split("<br>");
+                                out = "";
+                                $.each(slice, function(i, v) {
+                                    if (i < 9) {
+                                        return out = out + "&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1) + " " + v + "<br>";
+                                    } else if (i < 99) {
+                                        return out = out + "&nbsp;&nbsp;&nbsp;" + (i + 1) + " " + v + "<br>";
+                                    } else if (i < 999) {
+                                        return out = out + "&nbsp;&nbsp;" + (i + 1) + " " + v + "<br>";
+                                    } else if (i < 9999) {
+                                        return out = out + "&nbsp;" + (i + 1) + " " + v + "<br>";
+                                    }
+                                });
+                                print('<div style="text-align:left;">' + out + "</div>");
+                                return newLine();
+                            } else {
+                                return errorFormat("cat", c[2], json.respuesta.mensaje);
+                            }
+                        }).error(function() {
+                            throw "Server script doesn't exist.";
+                        });
+                    } else if (c[1] === "-b") {
+                        fileName = encodeURI(dirHelper(c[2]));
+                        url = urlHelper("cat", fileName);
+                        return $.getJSON(url, function(json, stat, xhr) {
+                            var i, j, out, slice;
+                            if (json.respuesta.res !== 1) {
+                                slice = json.respuesta.mensaje.split("<br>");
+                                out = "";
+                                i = 0;
+                                j = 0;
+                                for (j = 0; j < slice.length; j++) {
+                                    var v = slice[j];
+                                    if (v != "") {
+                                        if (i < 9) out = out + "&nbsp;&nbsp;&nbsp;&nbsp;" + (i + 1) + " " + v + "<br>"; else if (i < 99) out = out + "&nbsp;&nbsp;&nbsp;" + (i + 1) + " " + v + "<br>"; else if (i < 999) out = out + "&nbsp;&nbsp;" + (i + 1) + " " + v + "<br>"; else if (i < 9999) out = out + "&nbsp;" + (i + 1) + " " + v + "<br>";
+                                        i++;
+                                    } else out = out + "<br>";
+                                }
+                                print('<div style="text-align:left;">' + out + "</div>");
+                                return newLine();
+                            } else {
+                                return errorFormat("cat", c[1], json.respuesta.mensaje);
+                            }
+                        }).error(function() {
+                            throw "Server script doesn't exist.";
+                        });
+                    }
+                } else {
+                    print("usage: cat [-n] file");
                     return newLine();
-                }).error(function() {
-                    throw "Server script doesn't exist.";
-                });
+                }
             } else {
                 print("usage: cat file");
                 return newLine();
@@ -710,5 +774,5 @@
     $[pluginName].newLine = newLine;
     $[pluginName].urlHelper = urlHelper;
     $[pluginName].dirHelper = dirHelper;
-    window.webterminal = Plugin;
+    $[pluginName].errorFormat = errorFormat;
 }).call(this);
