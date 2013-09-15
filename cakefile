@@ -34,7 +34,7 @@ full = (callback) ->
 min = (callback) ->
     simpleBuild (code) ->
         console.log c.green + 'Minifing code...'
-        uglifymin = spawn 'uglifyjs', ['webterminal.js', '-c', '-o', 'webterminal.min.js']
+        uglifymin = spawn 'uglifyjs', ['webterminal.js', '-c', '-m', '-r', '$,window,_this,Plugin', '-o', 'webterminal.min.js']
         uglifymin.on 'exit', (code) ->
             fs.unlinkSync 'webterminal.js'
             console.log c.green + 'Build done, you\'ve gout your webterminal.js compiled and minified :)' if code is 0
@@ -45,7 +45,7 @@ complete = (callback) ->
     simpleBuild (code) ->
         console.log c.green + 'Improving code...'
         uglify = spawn 'uglifyjs', ['webterminal.js', '-b', '-o', 'webterminal.js']
-        uglifymin = spawn 'uglifyjs', ['webterminal.js', '-c', '-o', 'webterminal.min.js']
+        uglifymin = spawn 'uglifyjs', ['webterminal.js', '-c', '-m', '-r', '$,window,_this,Plugin', '-o', 'webterminal.min.js']
         uglify.on 'exit', (code) ->
             console.log c.green + 'Minifing code...'
             uglifymin.on 'exit', (code) ->
@@ -56,7 +56,7 @@ complete = (callback) ->
 simpleBuild = (afterCallback) ->
     console.time 'build'
     console.log c.green + 'Compiling coffee...'
-    coffee = spawn 'coffee', ['-c', '-j', 'webterminal.js', 'src/']
+    coffee = spawn 'coffee', ['-c', '-j', 'webterminal.js', 'src/starting variables.coffee', 'src/helper functions.coffee', 'src/shell/', 'src/prototype.coffee']
     coffee.stderr.on 'data', (data) ->
         process.stderr.write c.red + data.toString()
     coffee.stdout.on 'data', (data) ->

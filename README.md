@@ -4,8 +4,8 @@ webterminal.js
 A terminal emulator for the web.
 It's inspired in the bash environment, to entertain it, as in this 404 example: [SrRBR007 404' error page](http://srrbr007.tk/melchor629/404.htm). If you clone the repository, you can open the *webterminal.html* and prove the project in a Mac-like terminal :P.
 Sizes:                  Uncompressed G-Zipped
-    webterminal.js      ~25,2kb      ~4,8kb
-    webterminal.min.js  ~13,7kb      ~4,1kb
+    webterminal.js      ~26,9kb      ~4,4kb
+    webterminal.min.js  ~11,5kb      ~3,2kb
 not bad ·_·
 
 ## Basic usage
@@ -118,7 +118,7 @@ In every help you have to make an array with 2 strings. The very short descripti
 Type `help` in the console and you will see the commands with its help. If you type `help salute` you will see the long description.
 
 ## Build
-For build from the source (`src/`) you need firstly [node.js](http://nodejs.org), [uglify.js](https://github.com/mishoo/UglifyJS2) and [CoffeeScript](http://coffeescript.org). When you've installed them, node.js, uglify.js and CoffeeScript, you can build it. Open a terminal and go to the project directory. Then type `cake` and you will see a list of tasks you can use, see descriptions near every task. And also you can use the feature watch for auto-build the source when a file is changed. Ex.: `cake -b build:full watch` (*You have to put the argument in this way*). Also you can test the project, or both, test and watch.
+For build from the source (`src/`) you need firstly [node.js](http://nodejs.org), [uglify.js](https://github.com/mishoo/UglifyJS2) and [CoffeeScript](http://coffeescript.org). When you've installed them, node.js, uglify.js and CoffeeScript, you can build it. Open a terminal and go to the project directory. Then type `cake` and you will see a list of tasks you can use, see descriptions near every task. And also you can use the feature watch for auto-build the source when a file is changed. Ex.: `cake -b build:full watch` ( *You have to put the argument in this way* ). Also you can test the project, or both, test and watch.
 
 ## API
 There's some ways to modify the default functionaly of the terminal, you has just read before. But when you create commands you have special functions for help you.

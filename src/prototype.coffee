@@ -8,7 +8,6 @@ Plugin = (element, options) ->
 
     this.init()
 
-
 Plugin.prototype =
     init: ->
         ((id) ->
@@ -54,10 +53,10 @@ Plugin.prototype =
         )
 
     console: ->
-        #Console
+        #TODO Bug: Chrome doesn't pass delete key
         _this = this
-        $(document).keydown((e) ->
-            keyCode = e.originalEvent.keyIdentifier
+        $(document).keypress((e) ->
+            keyCode = e.which
             lines = $(_this.element).find(".consola-line").length
             line = $(".consola-line")[lines-1]
             if e.metaKey or (e.ctrlKey and keyCode is 82) or (e.ctrlKey and keyCode is 84)
@@ -65,20 +64,15 @@ Plugin.prototype =
             e.preventDefault()
             _this._fill(false)
 
-            #console.log(keyCode)
             if $(".consola").length is 0
                 $(_this.element).append('<div class="consola"></div>').find("span#l").remove()
             if lines is 0 
                 $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text('sh-3.2# '+_this.env["PWD"]+" "+_this.env["USER"]+"$ ")
-            else if not e.shiftKey and not e.altKey and chars[keyCode] isnt undefined
-                append(chars[keyCode])
-            else if keyCode is 'U+0008' #Eliminar caracter
+            else if String.fromCharCode(keyCode) isnt undefined and keyCode isnt 8 and keyCode isnt 13 and keyCode isnt 0
+                append String.fromCharCode keyCode
+            else if keyCode is 8 #Eliminar caracter
                 remove()
-            else if e.shiftKey and not e.altKey and shift_chars[keyCode] isnt undefined
-                append(shift_chars[keyCode])
-            else if not e.shiftKey and e.altKey and alt_chars[keyCode] isnt undefined
-                append(alt_chars[keyCode])
-            else if keyCode == 'Enter' #Nueva linea -> enviar comando
+            else if keyCode == 13 #Nueva linea -> enviar comando
                 $(line).find("span#l").remove()
                 $(line).append("<br>")
                 comando = $(line).find("span#g").text().split(" ")
@@ -105,7 +99,17 @@ Plugin.prototype =
                         throw e
                 else if _this.shell[comando[0]] is undefined and comando[0] isnt undefined
                         _this.shell["none"](comando)
-            else if keyCode is 'Up' #Arriba
+
+            $(_this.element).scrollTop(100000)
+            if $(_this.element).height() < $(".consola").height()
+                $(".consola-line").addClass("consola-line-short")
+        ).keydown((e) ->
+            keyCode = e.which
+            lines = $(_this.element).find(".consola-line").length
+            line = $(".consola-line")[lines-1]
+
+            if keyCode is 38 #Arriba
+                e.preventDefault()
                 if $(line).find('span#g').data('historial') is undefined
                     $(line).find("span#g").empty().data('historial', _this.historial.length - 1)
                     comando = _this.historial[_this.historial.length - 1]
@@ -116,7 +120,8 @@ Plugin.prototype =
                     if num <= _this.historial.length and num >= 0
                         $(line).find("span#g").empty().data('historial', num)
                         append(comando)
-            else if keyCode is 'Down' #Abajo
+            else if keyCode is 40 #Abajo
+                e.preventDefault()
                 if $(line).find('span#g').data('historial') is undefined
                     $(line).find("span#g").empty().data('historial', _this.historial.length + 1)
                     comando = _this.historial[_this.historial.length + 1]

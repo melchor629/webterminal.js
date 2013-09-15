@@ -1,9 +1,3 @@
-version = 'v0.2'
-pluginName = 'webterminal'
-_this = {}
-lines = 0
-line = $(".consola-line")[lines - 1]
-
 #Append a character in the current line
 append = (car) ->
     line = getLine()
@@ -40,7 +34,6 @@ urlHelper = (command, arg) ->
         if conf.script == 'node.js'
             url = if document.location.protocol == 'file:' then 'http://localhost:8080/' else "http://"  + document.location.hostname + ":8080/"
             url = url + command + '/' + '?USER=' + _this.env['USER']
-            #return url
         else if(conf.script == 'php')
             url = if document.location.protocol == 'file:' then "http://localhost/server.php?c=#{command}&USER=#{_this.env["USER"]}" else "http://
                 #{document.location.hostname}#{conf.phpscript}server.php?c=#{command}&USER=#{_this.env['USER']}"
