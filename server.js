@@ -2,7 +2,7 @@ var http = require('http');
 var fs = require('fs');
 var qs = require('querystring');
 var os = require('os');
-var version = 'v.0.2';
+var version = 'v.0.3';
 
 var
 //Is Admin function
@@ -211,10 +211,11 @@ http.createServer(function(req, res) {
     json.pedido.url = url;
     json.pedido.comando = comando;
     json.pedido.query = query;
-    console.log(comando + '> ' + query['0'] + ' ≥ ' + (commands[comando] !== undefined));
+    console.log(comando + ' > ' + query['0'] + ' ≥ ' + (commands[comando] !== undefined));
     if(commands[comando] !== undefined) {
         json = commands[comando](json);
-        console.log('OUT: ' + json.respuesta.mensaje);
+        if(process.argv[2] === '--debugOut' || process.argv[3] === '--debugOut')
+            console.log('-> ' + json.respuesta.mensaje);
     } else {
         json.respuesta.mensaje = '-bash: ' + comando + ': command not found';
         json.respuesta.res = 0;
@@ -225,4 +226,41 @@ http.createServer(function(req, res) {
 }).listen(8080, '0.0.0.0');
 
 console.log('webterminal.js node server script ' + version);
-console.log('node.js (' + process.version + ') ' + os.type() + ' ' + os.arch() + ' ' + os.release() + '\n');
+console.log('node.js (' + process.version + ') ' + os.type() + ' ' + os.arch() + ' ' + os.release());
+
+//Simple HTTP Server for avoid Chrome problems
+if(process.argv[2] === '--http' || process.argv[3] === '---http') {
+    var server = http.createServer().listen(80, 'localhost');
+    console.log('Local http server running at http://localhost:80/');
+    server.on('request', function(req, res) {
+        if(req.method === "GET") {
+            req.url = req.url.replace('/', './');
+            if(req.url === "./") req.url = './webterminal.html';
+            try {
+                var file_contents = fs.readFileSync(os.type().indexOf('Windows') !== -1 ? req.url.replace(/\//g, '\\') : req.url, 'utf-8');
+            } catch(e) {
+                res.statusCode = 404;
+                res.end('<h1>Error 404 | Page not found</h1><br><p>'+req.url+'</p>');
+                console.log('HTTP > ' + req.url + ' (' + 404 + ')');
+                return;
+            }
+            var mime = 'text/plain';
+            res.setHeader('Access-Control-Allow-Origin', 'all');
+            if(req.url.lastIndexOf('.') !== -1) {
+                var ext = req.url.substr(req.url.lastIndexOf('.') +1);
+                if(ext === 'html' || ext === 'htm')
+                    mime = 'text/html';
+                if(ext === 'js')
+                    mime = 'text/javascript';
+                if(ext === 'css')
+                    mime = 'text/stylesheet';
+                if(ext === 'json')
+                    mime = 'text/json';
+            }
+            res.setHeader('Content-type', mime + '; charset=utf-8');
+            res.end(file_contents);
+            console.log('HTTP > ' + req.url + ' (' + mime + ')');
+        }
+    });
+}
+console.log('');
