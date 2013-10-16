@@ -3,7 +3,11 @@
     var $, Plugin, append, conf, dirHelper, env, errorFormat, getLine, help, line, lines, newLine, parpadeo, pluginName, print, remove, shell, urlHelper, version, window, _this;
     window = this;
     $ = window.$;
-    shell = {};
+    version = "v0.2";
+    pluginName = "webterminal";
+    _this = {};
+    lines = 0;
+    line = $(".consola-line")[lines - 1];
     conf = {
         server: false,
         script: void 0,
@@ -16,11 +20,7 @@
         USER: "guest"
     };
     help = {};
-    version = "v0.2";
-    pluginName = "webterminal";
-    _this = {};
-    lines = 0;
-    line = $(".consola-line")[lines - 1];
+    shell = {};
     append = function(car) {
         line = getLine();
         return $(line).find("span#g").append(car);
@@ -54,7 +54,7 @@
                 url = document.location.protocol === "file:" ? "http://localhost:8080/" : "http://" + document.location.hostname + ":8080/";
                 url = url + command + "/" + "?USER=" + _this.env["USER"];
             } else if (conf.script === "php") {
-                url = document.location.protocol === "file:" ? "http://localhost/server.php?c=" + command + "&USER=" + _this.env["USER"] : "http://                " + document.location.hostname + conf.phpscript + "server.php?c=" + command + "&USER=" + _this.env["USER"];
+                url = document.location.protocol === "file:" ? "http://localhost/server.php?c=" + command + "&USER=" + _this.env["USER"] : "http://" + document.location.hostname + conf.phpscript + "server.php?c=" + command + "&USER=" + _this.env["USER"];
             } else {
                 throw $.webterminal.idioma.scriptError;
             }
@@ -253,10 +253,11 @@
             print($.webterminal.idioma.shell.help[2]);
             print($.webterminal.idioma.shell.help[3]);
             $.each(_this.lang.help, function(a, b) {
-                return print("&nbsp;" + a + " " + b[0]);
-            });
-            $.each(_this.help, function(a, b) {
-                return print("&nbsp;" + a + " " + b[0]);
+                while (a.length < 7) {
+                    a = a + " ";
+                }
+                console.log(a.replace(/\ /g, "&nbsp;"));
+                return print("&nbsp;&nbsp;" + a.replace(/\ /g, "&nbsp;") + " " + b[0]);
             });
         } else if (c[1] && _this.help[c[1]] !== void 0) {
             b = _this.help[c[1]];
@@ -543,6 +544,7 @@
                             print('<span style="color:red">&gt;&nbsp;Has ocurred an error. See dev tools console</span>');
                             newLine();
                             throw e;
+                            debugger;
                         }
                     } else if (_this.shell[comando[0]] === void 0 && comando[0] !== void 0) {
                         _this.shell["none"](comando);

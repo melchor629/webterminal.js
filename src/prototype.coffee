@@ -97,6 +97,7 @@ Plugin.prototype =
                         print('<span style="color:red">&gt;&nbsp;Has ocurred an error. See dev tools console</span>')
                         newLine()
                         throw e
+                        debugger;
                 else if _this.shell[comando[0]] is undefined and comando[0] isnt undefined
                         _this.shell["none"](comando)
 

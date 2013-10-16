@@ -5,10 +5,9 @@ shell.help = (c) ->
         print($.webterminal.idioma.shell.help[2])
         print($.webterminal.idioma.shell.help[3])
         $.each(_this.lang.help, (a, b) ->
-            print("&nbsp;" + a + " " + b[0])
-        )
-        $.each(_this.help, (a, b) ->
-            print("&nbsp;" + a + " " + b[0])
+            while a.length < 7
+                a = a + " "
+            print("&nbsp;&nbsp;" + a.replace(/\ /g, '&nbsp;') + " " + b[0])
         )
     else if c[1] and _this.help[c[1]] isnt undefined
         b = _this.help[c[1]]

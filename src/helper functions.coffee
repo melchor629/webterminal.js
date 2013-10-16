@@ -31,12 +31,13 @@ newLine = ->
 urlHelper = (command, arg) ->
     conf = _this.conf
     if conf.server is true
-        if conf.script == 'node.js'
-            url = if document.location.protocol == 'file:' then 'http://localhost:8080/' else "http://"  + document.location.hostname + ":8080/"
+        if conf.script is 'node.js'
+            url = if document.location.protocol is 'file:' then 'http://localhost:8080/' else "http://"  + document.location.hostname + ":8080/"
             url = url + command + '/' + '?USER=' + _this.env['USER']
-        else if(conf.script == 'php')
-            url = if document.location.protocol == 'file:' then "http://localhost/server.php?c=#{command}&USER=#{_this.env["USER"]}" else "http://
-                #{document.location.hostname}#{conf.phpscript}server.php?c=#{command}&USER=#{_this.env['USER']}"
+        else if conf.script is 'php'
+            url = if document.location.protocol is 'file:'
+            then "http://localhost/server.php?c=#{command}&USER=#{_this.env["USER"]}"
+            else "http://#{document.location.hostname}#{conf.phpscript}server.php?c=#{command}&USER=#{_this.env['USER']}"
         else
             throw $.webterminal.idioma.scriptError
         o = 0;
