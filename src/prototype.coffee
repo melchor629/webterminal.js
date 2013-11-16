@@ -90,6 +90,22 @@ Plugin.prototype =
                                 comando[a] = ""
                             i++
                 )
+                fcomando = []
+                tempComandoString = ''
+                $.each(comando, (key, value) -> #Busca Strings "" o ''
+                    if value.search('"') != -1 or value.search("'") != -1
+                        if tempComandoString
+                            tempComandoString += ' ' + value.substr 0, value.length-1
+                            fcomando.push tempComandoString
+                            tempComandoString = ''
+                        else
+                            tempComandoString += value.substr 1
+                    else if not tempComandoString
+                        fcomando.push value 
+                    else if tempComandoString
+                        tempComandoString += ' ' + value
+                )
+                comando = fcomando
                 if _this.shell[comando[0]] isnt undefined and comando[0] isnt undefined
                     try
                         _this.shell[comando[0]](comando)
@@ -97,7 +113,7 @@ Plugin.prototype =
                         print('<span style="color:red">&gt;&nbsp;Has ocurred an error. See dev tools console</span>')
                         newLine()
                         throw e
-                        debugger;
+                        debugger
                 else if _this.shell[comando[0]] is undefined and comando[0] isnt undefined
                         _this.shell["none"](comando)
 

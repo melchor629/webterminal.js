@@ -26,3 +26,5 @@ shell.exampleCommand = (c) ->
 `string dirHelper(string folder)` Parses some special paths and returns a better path. The argument is the string from the command argument.
 
 `void errorFormat(string cmd, string arg, string msg)` Prints a Bash like error and calls `newLine()`. The first argument is the command (ex.: cat), the second the argument with error, and the third a message to the user.
+
+`void errorFormatNNL(string cmd, string arg, string msg)` Same as `errorFormat(cmd, arg, msg)` but without using `newLine()`

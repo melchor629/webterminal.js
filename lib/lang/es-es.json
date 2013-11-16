@@ -14,7 +14,7 @@
         "env": ["imprime todos las variables de entorno"],
         "export": ["ajusta una variable"],
         "reload": ["recarga la consola"],
-        "ls": ["una lista de archivos y carpetas del cwd"],
+        "ls": ["[directory ...]","una lista de archivos y carpetas del argumento/s"],
         "cd": ["[directory] cambia el direcotrio actual de trabajo"],
         "rm": ["[file] elimina un archivo"],
         "rmdir": ["[directory] elimina un directorio", "Elimina una carpeta vacía. Si no está vacía puedes usar la opción `-r`."],

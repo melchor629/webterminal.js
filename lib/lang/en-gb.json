@@ -14,7 +14,7 @@
         "env": ["prints all the environment variables"],
         "export": ["sets a variable"],
         "reload": ["reload the console"],
-        "ls": ["a list of files and directories of the cwd"],
+        "ls": ["[directory ...]", "a list of files and directories of the argument/s given"],
         "cd": ["[directory] change the current working directory"],
         "rm": ["[file] delete a file"],
         "rmdir": ["[directory] removes a directory", "Removes a empty directory. In case of not be empty, you can use the option `-r`."],

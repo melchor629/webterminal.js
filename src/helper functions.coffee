@@ -73,6 +73,10 @@ errorFormat = (cmd, arg, msg) ->
     print "#{cmd}: #{arg}: #{msg}"
     newLine()
 
+#Bash error message format without newLine()
+errorFormatNNL = (cmd, arg, msg) ->
+    print "#{cmd}: #{arg}: #{msg}"
+
 #Loop of the text cursor
 (parpadeo = ()->
     if $('span#l').length is 0

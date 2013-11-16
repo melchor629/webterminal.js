@@ -88,6 +88,10 @@ task 'watch', 'Watch for changes and auto-builds, require -b', ->
             if filename.search('.coffee') isnt -1
                 console.log c.yellow + '\n"' + filename + '" has changed, re-building...'
                 invoke process.argv[3]
+        fs.watch 'src/shell', (event, filename) ->
+            if filename.search('.coffee') isnt -1
+                console.log c.yellow + '\n"' + filename + '" has changed, re-building...'
+                invoke process.argv[3]
     else
         console.log c.red + 'You need to provide a valid --build argument, see `cake`'
 task 'test', 'Test the project', ->

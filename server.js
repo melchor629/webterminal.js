@@ -229,9 +229,12 @@ console.log('webterminal.js node server script ' + version);
 console.log('node.js (' + process.version + ') ' + os.type() + ' ' + os.arch() + ' ' + os.release());
 
 //Simple HTTP Server for avoid Chrome problems
-if(process.argv[2] === '--http' || process.argv[3] === '---http') {
-    var server = http.createServer().listen(80, 'localhost');
-    console.log('Local http server running at http://localhost:80/');
+if(process.argv[2] === '--http' || process.argv[3] === '--http') {
+    var port = 80;
+    if((process.argv[2] && process.argv[3]) || (process.argv[3] && process.argv[4]))
+        port = parseInt(process.argv[3] | process.argv[4]);
+    var server = http.createServer().listen(port, 'localhost');
+    console.log('Local http server running at http://localhost:'+port+'/');
     server.on('request', function(req, res) {
         if(req.method === "GET") {
             req.url = req.url.replace('/', './');

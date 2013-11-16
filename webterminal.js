@@ -1,6 +1,6 @@
 (function() {
     "use strict";
-    var $, Plugin, append, conf, dirHelper, env, errorFormat, getLine, help, line, lines, newLine, parpadeo, pluginName, print, remove, shell, urlHelper, version, window, _this;
+    var $, Plugin, append, conf, dirHelper, env, errorFormat, errorFormatNNL, getLine, help, line, lines, newLine, parpadeo, pluginName, print, remove, shell, urlHelper, version, window, _this;
     window = this;
     $ = window.$;
     version = "v0.2";
@@ -96,6 +96,9 @@
     errorFormat = function(cmd, arg, msg) {
         print("" + cmd + ": " + arg + ": " + msg);
         return newLine();
+    };
+    errorFormatNNL = function(cmd, arg, msg) {
+        return print("" + cmd + ": " + arg + ": " + msg);
     };
     (parpadeo = function() {
         if ($("span#l").length === 0) {
@@ -256,7 +259,6 @@
                 while (a.length < 7) {
                     a = a + " ";
                 }
-                console.log(a.replace(/\ /g, "&nbsp;"));
                 return print("&nbsp;&nbsp;" + a.replace(/\ /g, "&nbsp;") + " " + b[0]);
             });
         } else if (c[1] && _this.help[c[1]] !== void 0) {
@@ -298,21 +300,54 @@
     };
     shell.ls = function(c) {
         var url;
-        url = urlHelper("ls", _this.env["PWD"]);
-        if (url) {
-            return $.getJSON(url, function(json, stat, xhr) {
-                if (json.respuesta.res === 0) {
-                    $.each(json.respuesta.mensaje, function(i, v) {
-                        return print(v);
-                    });
-                    return newLine();
-                } else {
-                    return errorFormat("ls", c[1], json.respuesta.mensaje);
-                }
-            }).error(function() {
-                throw "Server script doesn't exist.";
-            });
+        if (c[1] && c[1].search("-") !== -1) {
+            errorFormatNNL("ls", c[1], "illegal option");
+            print("usage: ls [directory ...]");
+            return newLine();
+        } else if (c.length === 2 || c.length === 1) {
+            url = urlHelper("ls", c[1] ? _this.env.PWD + c[1] : _this.env["PWD"]);
+            if (url) {
+                return $.getJSON(url, function(json, stat, xhr) {
+                    if (json.respuesta.res === 0) {
+                        $.each(json.respuesta.mensaje, function(i, v) {
+                            return print(v);
+                        });
+                        return newLine();
+                    } else {
+                        return errorFormat("ls", c[1], json.respuesta.mensaje);
+                    }
+                }).error(function() {
+                    throw "Server script doesn't exist.";
+                });
+            } else {
+                return newLine();
+            }
         } else {
+            $.each(c, function(value, key) {
+                if (value) {
+                    url = urlHelper("ls", _this.env.PWD + key);
+                    if (url) {
+                        return $.getJSON(url, function(json, stat, xhr) {
+                            if (json.respuesta.res === 0) {
+                                print(key + ":");
+                                $.each(json.respuesta.mensaje, function(i, v) {
+                                    return print(v);
+                                });
+                                if (value + 1 !== c.length) {
+                                    return print("");
+                                }
+                            } else {
+                                errorFormatNNL("ls", c[1], json.respuesta.mensaje);
+                                return print("");
+                            }
+                        }).error(function() {
+                            throw "Server script doesn't exist.";
+                        });
+                    } else {
+                        return print("");
+                    }
+                }
+            });
             return newLine();
         }
     };
@@ -494,7 +529,7 @@
         console: function() {
             _this = this;
             return $(document).keypress(function(e) {
-                var comando, keyCode;
+                var comando, fcomando, keyCode, tempComandoString;
                 keyCode = e.which;
                 lines = $(_this.element).find(".consola-line").length;
                 line = $(".consola-line")[lines - 1];
@@ -536,6 +571,24 @@
                             return _results;
                         }
                     });
+                    fcomando = [];
+                    tempComandoString = "";
+                    $.each(comando, function(key, value) {
+                        if (value.search('"') !== -1 || value.search("'") !== -1) {
+                            if (tempComandoString) {
+                                tempComandoString += " " + value.substr(0, value.length - 1);
+                                fcomando.push(tempComandoString);
+                                return tempComandoString = "";
+                            } else {
+                                return tempComandoString += value.substr(1);
+                            }
+                        } else if (!tempComandoString) {
+                            return fcomando.push(value);
+                        } else if (tempComandoString) {
+                            return tempComandoString += " " + value;
+                        }
+                    });
+                    comando = fcomando;
                     if (_this.shell[comando[0]] !== void 0 && comando[0] !== void 0) {
                         try {
                             _this.shell[comando[0]](comando);
