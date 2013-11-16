@@ -17,18 +17,8 @@
                 font-size: 12px;
             }
             .console {
-                text-align: justify;
                 opacity: 0;
-                overflow-y: auto;
-                width: 484px;
-                height: 314px;
                 padding: 3px;
-            }
-            .consola-line {
-                width: 483px;
-            }
-            .consola-line-short {
-                width: 471px;
             }
         </style>
     </head>
@@ -40,7 +30,13 @@
         <script src="webterminal.js"></script>
         <script>
         $(document).ready(function() {
-            $('.console').webterminal();
+            configuration = {
+                width: 484,
+                height: 314,
+                server: true,
+                script: 'node.js'
+            };
+            $('.console').webterminal({conf: configuration});
             $('.consolas').animate({'opacity':1}, 1111);
         })
         </script>

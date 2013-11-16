@@ -11,7 +11,9 @@
     conf = {
         server: false,
         script: void 0,
-        phpscript: "/"
+        phpscript: "/",
+        width: 484,
+        height: 314
     };
     env = {
         TERM_PROGRAM: window.navigator.userAgent,
@@ -42,7 +44,7 @@
     };
     newLine = function() {
         lines = $(_this.element).find(".consola-line").length;
-        $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>');
+        $(".consola").append('<div class="consola-line" style="width: ' + _this.width + 'px"><span id="t"></span><span id="g"></span><span id="l">_</span></div>');
         $($(".consola .consola-line")[lines]).find("span#t").text("sh-3.2# " + _this.env["PWD"] + " " + _this.env["USER"] + "$ ");
         return $(_this.element).scrollTop(1e5);
     };
@@ -501,8 +503,16 @@
             }, 1111, c);
         },
         enLaBusquedaDelTextoPerdido: function() {
+            this.width = this.conf.width - 13;
+            this.height = this.conf.height;
+            $(this.element).css({
+                "text-align": "justify",
+                "overflow-y": "auto",
+                width: this.width + 13 + "px",
+                height: this.height + "px"
+            });
             if ($(this.element).text().length === 0) {
-                return $(this.element).append('<div class="consola"></div>').find(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text("sh-3.2# " + env["PWD"] + " " + env["USER"] + "$ ");
+                return $(this.element).append('<div class="consola"></div>').find(".consola").append('<div class="consola-line" style="width:' + this.width + 'px"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text("sh-3.2# " + env["PWD"] + " " + env["USER"] + "$ ");
             }
         },
         lang: function() {
@@ -542,7 +552,7 @@
                     $(_this.element).append('<div class="consola"></div>').find("span#l").remove();
                 }
                 if (lines === 0) {
-                    $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text("sh-3.2# " + _this.env["PWD"] + " " + _this.env["USER"] + "$ ");
+                    $(".consola").append('<div class="consola-line" style="width: ' + _this.width + 'px"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text("sh-3.2# " + _this.env["PWD"] + " " + _this.env["USER"] + "$ ");
                 } else if (String.fromCharCode(keyCode) !== void 0 && keyCode !== 8 && keyCode !== 13 && keyCode !== 0) {
                     append(String.fromCharCode(keyCode));
                 } else if (keyCode === 8) {
@@ -603,10 +613,7 @@
                         _this.shell["none"](comando);
                     }
                 }
-                $(_this.element).scrollTop(1e5);
-                if ($(_this.element).height() < $(".consola").height()) {
-                    return $(".consola-line").addClass("consola-line-short");
-                }
+                return $(_this.element).scrollTop(1e5);
             }).keydown(function(e) {
                 var comando, keyCode, num;
                 keyCode = e.which;

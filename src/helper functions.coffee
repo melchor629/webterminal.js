@@ -23,7 +23,7 @@ remove = ->
 #Create a new line, not \n
 newLine = ->
     lines = $(_this.element).find(".consola-line").length
-    $(".consola").append('<div class="consola-line"><span id="t"></span><span id="g"></span><span id="l">_</span></div>')
+    $(".consola").append('<div class="consola-line" style="width: ' + _this.width + 'px"><span id="t"></span><span id="g"></span><span id="l">_</span></div>')
     $($(".consola .consola-line")[lines]).find("span#t").text("sh-3.2# #{_this.env["PWD"]} #{_this.env["USER"]}$ ")
     $(_this.element).scrollTop(100000)
 

@@ -3,10 +3,12 @@ webterminal.js
 
 A terminal emulator for the web.
 It's inspired in the bash environment, to entertain it, as in this 404 example: [SrRBR007 404' error page](http://srrbr007.tk/melchor629/404.htm). If you clone the repository, you can open the *webterminal.html* and prove the project in a Mac-like terminal :P.
+```
 Sizes:                  Uncompressed G-Zipped
     webterminal.js      ~26,9kb      ~4,4kb
     webterminal.min.js  ~11,5kb      ~3,2kb
 not bad ·_·
+```
 
 ## Basic usage
 It's easy to use. You, firstly, need a html file with the basics `<head> <body>` and create a `<div>` with a class identifier. Ex.:
@@ -17,12 +19,12 @@ Also you can put a initial message in the div, very recomended:
 ```html
 <div class="console">Press any key to continue...<span id="l"></span></div>
 ```
-Before the `</body>` tag, add he needed scripts. The scripts are [jQuery](http://jquery.com) and, of course, webterminal.js
+Before the `</body>` tag, add the needed scripts. The scripts are [jQuery](http://jquery.com) and, of course, webterminal.js
 ```html
 <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
 <script src="webterminal.js"></script>
 ```
-And finally, the code to initiate the console:
+And finally, the javascript code to initiate the console:
 ```javascript
 $(".console").webconsole();
 ```
@@ -30,32 +32,25 @@ and that's all :D
 
 ### Styling the console
 If you want a stylished console, here are some tricks to make it pretty:
-In the main `<div/>`, set the style like that, for example:
+In the main `<div/>`, you could set the style like that:
 ```css
 .console {
-    width: 600px;
-    height: 333px;
-    text-align: justify;
     opacity: 0;
-    overflow-y: auto;
-}
-.consola-line {
-    width: 600px;
+    padding: 3px;
 }
 ```
-I recommand to put this CSS code in the page where you want to use the console for better looking. Explain:
-
-`.console` is the main div used in the basic usage. I set a width and a height, and then I justify the text to have the appearence to a real console. Opacity set to 0 to allow the script to fade in the console at start. And finally, overflow is necessary.
-`.consola-line` is a div created by the script. You have to set the width manually (for now…).
+`.console` is the main div used in the console script. There's some CSS rules that is set automatically. In above code, opacity is set to 0 to allow the script to fade in the console at start. Padding is for, in the example html, to set a padding to well looking like a Mac terminal.
 
 ## Extended Usage
 ### Configuration
-The confugration is optional, but recommended because some commands need a server program which sends information to the client. The configuration is:
+The configuration is optional, but recommended because some commands need a server program which sends information to the client. The configuration is:
 ```javascript
 configuration = {
     server: false,      //Tells if we will use a server script for special commands such 'ls'
     script: 'node.js',  //Tells what type of script will use
     phpscript: '/'      //If we use php script, tell where in the server is the script ex: for 'http://localhost/webterminal/server.php the value will be '/webterminal/'
+    width: 484          //Width of the console div
+    height: 314         //Height of the console div
 }
 $('.console').webterminal({conf: configuration});
 ```
@@ -139,9 +134,13 @@ For get the URL for a functions that connects with the node.js or php script thi
 ### .dirHelper(folder)
 Depending on the value of the argument `folder` will return a different value. For example, if you supply a value like `../` will return the parent directory of the current directory. If you supply `./` will return the same directory. And of you supply `/usr` will return `/usr`.
 ### .errorFormat(cmd, arg, msg)
-Prints a Bash error message (Ex.: _cat: filename: No such file or directory_) passing the command executed (`cmd`), the argument with error (`arg`) and the error message (`msg`). Giving the before example, with this function you will write `$.webterminal.errorFormat('cat', 'filename', 'No such file or directory');`. __Watch out!__ This function calls for you `.newLine()`.
+Prints a Bash error message (Ex.: _cat: filename: No such file or directory_) passing the command executed (`cmd`), the argument with error (`arg`) and the error message (`msg`). Giving the before example, with this function you will write `$.webterminal.errorFormat('cat', 'filename', 'No such file or directory');`. __Watch out!__ This function calls for you `.newLine()`. If you don't want to use `.newLine()`, see below...
+### .errorFormatNNL(cmd, arg, msg)
+Same as above, but without using `.newLine()`
 
 ## TODO List
 - [ ] Auto-detect the width of the console (_the selected `<div/>`_)
 - [X] If is pressed the key UP or DOWN, write the before commands
 - [ ] Create more commands
+- [ ] Complete `cat` command
+- [ ] Complete `ls` command
