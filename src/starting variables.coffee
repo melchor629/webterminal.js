@@ -1,11 +1,9 @@
 "use strict";
 window = this
 $ = window.$
-version = 'v0.2'
+version = '0.2-beta'
 pluginName = 'webterminal'
 _this = {}
-lines = 0
-line = $(".consola-line")[lines - 1]
 
 conf = 
     server: false,      #Tells if we will use a server script for special commands such 'ls'
@@ -19,6 +17,7 @@ env =
     "PWD": decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)),
     "SHELL": decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)) + "webterminal.js",
     "USER": "guest"
+    "VERSION": version
 
 help = {}
 shell = {}

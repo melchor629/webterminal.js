@@ -1,13 +1,11 @@
 (function() {
     "use strict";
-    var $, Plugin, append, conf, dirHelper, env, errorFormat, errorFormatNNL, getLine, help, line, lines, newLine, parpadeo, pluginName, print, remove, shell, urlHelper, version, window, _this;
+    var $, Plugin, append, conf, dirHelper, env, errorFormat, errorFormatNNL, getLine, help, newLine, parpadeo, pluginName, print, remove, shell, urlHelper, version, window, _this;
     window = this;
     $ = window.$;
-    version = "v0.2";
+    version = "0.2-beta";
     pluginName = "webterminal";
     _this = {};
-    lines = 0;
-    line = $(".consola-line")[lines - 1];
     conf = {
         server: false,
         script: void 0,
@@ -19,30 +17,35 @@
         TERM_PROGRAM: window.navigator.userAgent,
         PWD: decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)),
         SHELL: decodeURI(document.location.pathname.substr(0, document.location.pathname.lastIndexOf("/") + 1)) + "webterminal.js",
-        USER: "guest"
+        USER: "guest",
+        VERSION: version
     };
     help = {};
     shell = {};
     append = function(car) {
+        var line;
         line = getLine();
         return $(line).find("span#g").append(car);
     };
     print = function(str) {
+        var line;
         line = getLine();
         return $(line).find("span#g").append("<br>" + str);
     };
     getLine = function() {
+        var line, lines;
         lines = $(".consola .consola-line").length;
         line = $(".consola-line")[lines - 1];
         return line;
     };
     remove = function() {
-        var str;
+        var line, str;
         line = getLine();
         str = $(line).find("span#g").text().substr(0, $(line).find("span#g").text().length - 1);
         return $(line).find("span#g").empty().append(str);
     };
     newLine = function() {
+        var lines;
         lines = $(_this.element).find(".consola-line").length;
         $(".consola").append('<div class="consola-line" style="width: ' + _this.width + 'px"><span id="t"></span><span id="g"></span><span id="l">_</span></div>');
         $($(".consola .consola-line")[lines]).find("span#t").text("sh-3.2# " + _this.env["PWD"] + " " + _this.env["USER"] + "$ ");
@@ -384,6 +387,87 @@
         }
         return newLine();
     };
+    shell.printf = function(c) {
+        var argc, format, formatted, splitted;
+        format = function(string, arg) {
+            var number;
+            switch (string.charAt(0)) {
+              case "d":
+              case "i":
+                number = Number(arg);
+                if (Number(number.toFixed()) === number) {
+                    return number + string.substr(1);
+                } else {
+                    errorFormat("printf", "'" + arg + "'", "invalid number");
+                    return void 0;
+                }
+                break;
+
+              case "o":
+                return void 0;
+
+              case "u":
+                return void 0;
+
+              case "X":
+              case "x":
+                return void 0;
+
+              case "f":
+              case "F":
+                return void 0;
+
+              case "e":
+              case "E":
+                return void 0;
+
+              case "g":
+              case "G":
+                return void 0;
+
+              case "h":
+              case "H":
+                return void 0;
+
+              case "c":
+                return arg.charAt(0 + string.substr(1));
+
+              case "s":
+                return arg + string.substr(1);
+
+              case "b":
+                return void 0;
+
+              case "%":
+                return string.substr(1);
+
+              default:
+                errorFormat("printf", "'" + string.charAt(0) + "'", "invalid format character");
+                return void 0;
+            }
+        };
+        if (!c[1]) {
+            return errorFormat("printf", "usage", "printf [-v var] format [arguments ...]");
+        } else {
+            splitted = c[1].split("%");
+            formatted = "";
+            argc = 1;
+            for (var i = 0; i < splitted.length; i++) {
+                var strPiece = splitted[i], Sformat = "";
+                if (i === 0 && !strPiece) {
+                    Sformat = format(splitted[i + 1], c[1 + argc]);
+                    i++;
+                    argc++;
+                } else if (i !== 0 && strPiece) {
+                    Sformat = format(strPiece, c[1 + argc]);
+                    argc++;
+                } else Sformat = strPiece;
+                if (!Sformat) return; else formatted += Sformat;
+            }
+            print(formatted);
+            return newLine();
+        }
+    };
     shell.reload = function() {
         $(_this.element).delay(333).animate({
             opacity: 0
@@ -539,7 +623,7 @@
         console: function() {
             _this = this;
             return $(document).keypress(function(e) {
-                var comando, fcomando, keyCode, tempComandoString;
+                var comando, fcomando, keyCode, line, lines, tempComandoString;
                 keyCode = e.which;
                 lines = $(_this.element).find(".consola-line").length;
                 line = $(".consola-line")[lines - 1];
@@ -589,8 +673,10 @@
                                 tempComandoString += " " + value.substr(0, value.length - 1);
                                 fcomando.push(tempComandoString);
                                 return tempComandoString = "";
-                            } else {
+                            } else if (!tempComandoString && (value.lastIndexOf('"') === 0 || value.lastIndexOf("'") === 0)) {
                                 return tempComandoString += value.substr(1);
+                            } else {
+                                return fcomando.push(value.substr(1, value.length - 2));
                             }
                         } else if (!tempComandoString) {
                             return fcomando.push(value);
@@ -615,7 +701,7 @@
                 }
                 return $(_this.element).scrollTop(1e5);
             }).keydown(function(e) {
-                var comando, keyCode, num;
+                var comando, keyCode, line, lines, num;
                 keyCode = e.which;
                 lines = $(_this.element).find(".consola-line").length;
                 line = $(".consola-line")[lines - 1];

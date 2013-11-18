@@ -101,13 +101,15 @@ Plugin.prototype =
                 fcomando = []
                 tempComandoString = ''
                 $.each(comando, (key, value) -> #Busca Strings "" o ''
-                    if value.search('"') != -1 or value.search("'") != -1
+                    if value.search('"') isnt -1 or value.search("'") isnt -1
                         if tempComandoString
                             tempComandoString += ' ' + value.substr 0, value.length-1
                             fcomando.push tempComandoString
                             tempComandoString = ''
-                        else
+                        else if not tempComandoString and (value.lastIndexOf('"') is 0 or value.lastIndexOf("'") is 0)
                             tempComandoString += value.substr 1
+                        else
+                            fcomando.push value.substr 1, value.length-2
                     else if not tempComandoString
                         fcomando.push value 
                     else if tempComandoString
@@ -126,8 +128,6 @@ Plugin.prototype =
                         _this.shell["none"](comando)
 
             $(_this.element).scrollTop(100000)
-            #if $(_this.element).height() < $(".consola").height()
-                #$(".consola-line").addClass("consola-line-short")
         ).keydown((e) ->
             keyCode = e.which
             lines = $(_this.element).find(".consola-line").length
