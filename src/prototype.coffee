@@ -120,7 +120,7 @@ Plugin.prototype =
                     try
                         _this.shell[comando[0]](comando)
                     catch e
-                        print('<span style="color:red">&gt;&nbsp;Has ocurred an error. See dev tools console</span>')
+                        print '<span style="color:red">&gt;&nbsp;Has ocurred an error. See dev tools console</span>'
                         newLine()
                         throw e
                         debugger

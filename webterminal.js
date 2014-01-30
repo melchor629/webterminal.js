@@ -23,14 +23,10 @@
     help = {};
     shell = {};
     append = function(car) {
-        var line;
-        line = getLine();
-        return $(line).find("span#g").append(car);
+        return $(getLine()).find("span#g").append(car);
     };
     print = function(str) {
-        var line;
-        line = getLine();
-        return $(line).find("span#g").append("<br>" + str);
+        return $(getLine()).find("span#g").append("<br>" + str);
     };
     getLine = function() {
         var line, lines;
@@ -39,10 +35,10 @@
         return line;
     };
     remove = function() {
-        var line, str;
-        line = getLine();
-        str = $(line).find("span#g").text().substr(0, $(line).find("span#g").text().length - 1);
-        return $(line).find("span#g").empty().append(str);
+        var objG, str;
+        objG = $(getLine()).find("span#g");
+        str = objG.text().substr(0, objG.text().length - 1);
+        return objG.empty().append(str);
     };
     newLine = function() {
         var lines;
@@ -56,10 +52,10 @@
         conf = _this.conf;
         if (conf.server === true) {
             if (conf.script === "node.js") {
-                url = document.location.protocol === "file:" ? "http://localhost:8080/" : "http://" + document.location.hostname + ":8080/";
+                url = "http://" + document.location.hostname + ":8080/";
                 url = url + command + "/" + "?USER=" + _this.env["USER"];
             } else if (conf.script === "php") {
-                url = document.location.protocol === "file:" ? "http://localhost/server.php?c=" + command + "&USER=" + _this.env["USER"] : "http://" + document.location.hostname + conf.phpscript + "server.php?c=" + command + "&USER=" + _this.env["USER"];
+                url = "http://" + document.location.hostname + conf.phpscript + "server.php?c=" + command + "&USER=" + _this.env["USER"];
             } else {
                 throw $.webterminal.idioma.scriptError;
             }
@@ -388,85 +384,170 @@
         return newLine();
     };
     shell.printf = function(c) {
-        var argc, format, formatted, splitted;
-        format = function(string, arg) {
-            var number;
-            switch (string.charAt(0)) {
-              case "d":
-              case "i":
-                number = Number(arg);
-                if (Number(number.toFixed()) === number) {
-                    return number + string.substr(1);
+        var a, doFormat, format, formatBaseX, formatString, i, justify, pad, regex;
+        if (c.length < 2) {
+            print("printf: usage printf format [arguments]");
+            newLine();
+            return;
+        }
+        regex = /%%|%(\d+\$)?([-+\'#0 ]*)(\*\d+\$|\*|\d+)?(\.(\*\d+\$|\*|\d+))?([scboxXuideEfFgG])/g;
+        a = c.slice(1);
+        i = 0;
+        format = a[i++];
+        pad = function(str, len, chr, leftJustify) {
+            var padding;
+            if (!chr) {
+                chr = " ";
+            }
+            padding = str.length >= length ? "" : Array(1 + len - str.length >>> 0).join(chr);
+            if (leftJustify) {
+                return str + padding;
+            } else {
+                return padding + str;
+            }
+        };
+        justify = function(value, prefix, leftJustify, minWidth, zeroPad, customPadChar) {
+            var diff;
+            diff = minWidth - value.length;
+            if (diff > 0) {
+                if (leftJustify || !zeroPad) {
+                    value = pad(value, minWidth, customPadChar, leftJustify);
                 } else {
-                    errorFormat("printf", "'" + arg + "'", "invalid number");
-                    return void 0;
+                    value = value.slice(0, prefix.length) + pad("", diff, "0", true) + value.slice(prefix.length);
                 }
-                break;
+            }
+            return value;
+        };
+        formatBaseX = function(value, base, prefix, leftJustify, minWidth, precision, zeroPad) {
+            var number;
+            number = value >>> 0;
+            prefix = prefix && number && {
+                "2": "0b",
+                "8": "0",
+                "16": "0x"
+            }[base] || "";
+            value = prefix + pad(number.toString(base), precision || 0, "0", false);
+            return justify(value, prefix, leftJustify, minWidth, zeroPad);
+        };
+        formatString = function(value, leftJustify, minWidth, prec, zeroPad, customPadChar) {
+            if (prec !== null) {
+                value = value.slice(0, prec);
+            }
+            return justify(value, "", leftJustify, minWidth, zeroPad, customPadChar);
+        };
+        doFormat = function(substring, valueIndex, flags, minWidth, _, precision, type) {
+            var customPadChar, flagsl, leftJustify, method, number, positivePrefix, prefix, prefixBaseX, textTransform, value, zeroPad;
+            if (substring === "%%") {
+                return "%";
+            }
+            leftJustify = false;
+            positivePrefix = "";
+            zeroPad = false;
+            prefixBaseX = false;
+            customPadChar = " ";
+            flagsl = flags.length;
+            for (var j = 0; flags && j < flagsl; j++) {
+                j;
+                switch (flags.charAt(j)) {
+                  case " ":
+                    positivePrefix = " ";
+                    break;
+
+                  case "+":
+                    positivePrefix = "+";
+                    break;
+
+                  case "-":
+                    leftJustify = true;
+                    break;
+
+                  case "'":
+                    customPadChar = flags.charAt(j + 1);
+                    break;
+
+                  case "0":
+                    zeroPad = true;
+                    break;
+
+                  case "#":
+                    prefixBaseX = true;
+                }
+            }
+            if (!minWidth) {
+                minWidth = 0;
+            } else if (minWidth === "*") {
+                minWidth = +a[i++];
+            } else if (minWidth.charAt(0 === "*")) {
+                minWidth = +a[minWidth.slice(1, -1)];
+            } else {
+                minWidth = +minWidth;
+            }
+            if (minWidth < 0) {
+                minWidth = -minWidth;
+                leftJustify = true;
+            }
+            if (!isFinite(minWidth)) {
+                throw new Error("sprintf: (minimum-)width must be finite");
+            }
+            if (!precision) {
+                precision = "fFeE".indexOf(type) > -1 ? 6 : type === "d" ? 0 : void 0;
+            } else if (precision === "*") {
+                precision = +a[i++];
+            } else if (precision.charAt(0) === "*") {
+                precision = +a[precision.slice(1, -1)];
+            } else {
+                precision = +precision;
+            }
+            value = valueIndex ? a[valueIndex.slice(0, -1)] : a[i++];
+            switch (type) {
+              case "s":
+                return formatString(String(value), leftJustify, minWidth, precision, zeroPad, customPadChar);
+
+              case "c":
+                return formatString(String.fromCharCode(+value), leftJustify, minWidth, precision, zeroPad);
+
+              case "b":
+                return formatString(value, 2, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
 
               case "o":
-                return void 0;
+                return formatString(value, 8, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
 
-              case "u":
-                return void 0;
+              case "x":
+                return formatString(value, 16, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
 
               case "X":
-              case "x":
-                return void 0;
+                return formatString(value, 16, prefixBaseX, leftJustify, minWidth, precision, zeroPad).toUpperCase();
 
-              case "f":
-              case "F":
-                return void 0;
+              case "u":
+                return formatString(value, 10, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
+
+              case "i":
+              case "d":
+                number = +value || 0;
+                number = Math.round(number - number % 1);
+                prefix = number < 0 ? "-" : positivePrefix;
+                value = prefix + pad(String(Math.abs(number)), precision, "0", false);
+                return justify(value, prefix, leftJustify, minWidth, zeroPad);
 
               case "e":
               case "E":
-                return void 0;
-
+              case "f":
+              case "F":
               case "g":
-              case "G":
-                return void 0;
-
-              case "h":
-              case "H":
-                return void 0;
-
-              case "c":
-                return arg.charAt(0 + string.substr(1));
-
-              case "s":
-                return arg + string.substr(1);
-
-              case "b":
-                return void 0;
-
-              case "%":
-                return string.substr(1);
+              case "g":
+                number = +value;
+                prefix = number < 0 ? "-" : positivePrefix;
+                method = [ "toExponential", "toFixed", "toPrecision" ]["efg".indexOf(type.toLowerCase())];
+                textTransform = [ "toString", "toUpperCase" ]["eEfFgG".indexOf(type) % 2];
+                value = prefix + Math.abs(number)[method](precision);
+                return justify(value, prefix, leftJustify, minWidth, zeroPad)[textTransform]();
 
               default:
-                errorFormat("printf", "'" + string.charAt(0) + "'", "invalid format character");
-                return void 0;
+                return substring;
             }
         };
-        if (!c[1]) {
-            return errorFormat("printf", "usage", "printf [-v var] format [arguments ...]");
-        } else {
-            splitted = c[1].split("%");
-            formatted = "";
-            argc = 1;
-            for (var i = 0; i < splitted.length; i++) {
-                var strPiece = splitted[i], Sformat = "";
-                if (i === 0 && !strPiece) {
-                    Sformat = format(splitted[i + 1], c[1 + argc]);
-                    i++;
-                    argc++;
-                } else if (i !== 0 && strPiece) {
-                    Sformat = format(strPiece, c[1 + argc]);
-                    argc++;
-                } else Sformat = strPiece;
-                if (!Sformat) return; else formatted += Sformat;
-            }
-            print(formatted);
-            return newLine();
-        }
+        print(format.replace(regex, doFormat));
+        return newLine();
     };
     shell.reload = function() {
         $(_this.element).delay(333).animate({

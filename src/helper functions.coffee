@@ -1,12 +1,10 @@
 #Append a character in the current line
 append = (car) ->
-    line = getLine()
-    $(line).find("span#g").append(car)
+    $(getLine()).find("span#g").append(car)
 
 #Print something in the line, HTML is valid
 print = (str) ->
-    line = getLine()
-    $(line).find("span#g").append("<br>" + str)
+    $(getLine()).find("span#g").append("<br>" + str)
 
 #Get the current HTMLDomObject line
 getLine = ->
@@ -16,9 +14,9 @@ getLine = ->
 
 #Remove a character in the current line
 remove = ->
-    line = getLine()
-    str = $(line).find("span#g").text().substr(0, $(line).find("span#g").text().length - 1)
-    $(line).find("span#g").empty().append(str)
+    objG = $(getLine()).find("span#g")
+    str = objG.text().substr(0, objG.text().length - 1)
+    objG.empty().append(str)
 
 #Create a new line, not \n
 newLine = ->
@@ -32,12 +30,10 @@ urlHelper = (command, arg) ->
     conf = _this.conf
     if conf.server is true
         if conf.script is 'node.js'
-            url = if document.location.protocol is 'file:' then 'http://localhost:8080/' else "http://"  + document.location.hostname + ":8080/"
+            url = "http://"  + document.location.hostname + ":8080/"
             url = url + command + '/' + '?USER=' + _this.env['USER']
         else if conf.script is 'php'
-            url = if document.location.protocol is 'file:'
-            then "http://localhost/server.php?c=#{command}&USER=#{_this.env["USER"]}"
-            else "http://#{document.location.hostname}#{conf.phpscript}server.php?c=#{command}&USER=#{_this.env['USER']}"
+            url = "http://#{document.location.hostname}#{conf.phpscript}server.php?c=#{command}&USER=#{_this.env['USER']}"
         else
             throw $.webterminal.idioma.scriptError
         o = 0;

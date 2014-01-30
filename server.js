@@ -22,14 +22,15 @@ isFile = function(file) {
 //Commands functions
 commands = {
     'cd': function(json) {
+        var stat;
         if(query['0'].charAt(0) != '/')
-            query['0'] = query['PWD'] + query['0'] + '/';
+            query['0'] = query.PWD + query['0'] + '/';
         if(query['0'].charAt(query[0].length -1) != '/')
             query['0'] = query['0'] + '/';
         try {
-            var stat = fs.statSync(query['0']);
+            stat = fs.statSync(query['0']);
         } catch(Exception) {
-            var stat = {isDirectory: function(){ return 2; }};
+            stat = {isDirectory: function(){ return 2; }};
         }
         if(stat.isDirectory() === true) {
             json.respuesta.mensaje = query['0'];
@@ -44,10 +45,11 @@ commands = {
         return json;
     },
     'ls': function(json) {
+        var out, err;
         try {
-            var out = fs.readdirSync(query['0']);
+            out = fs.readdirSync(query['0']);
         } catch(Exception) {
-            var err = Exception;
+            err = Exception;
         }
         if(out) {
             json.respuesta.mensaje = out;
@@ -60,12 +62,13 @@ commands = {
     },
     'rm': function(json) {
         if(isAdmin()) {
+            var err;
             try {
-                var err = fs.unlinkSync(query.PWD + query['0']);
+                err = fs.unlinkSync(query.PWD + query['0']);
             } catch(Exception) {
-                var err = Exception;
+                err = Exception;
             }
-            if(err == undefined) {
+            if(err === undefined) {
                 json.respuesta.mensaje = true;
                 json.respuesta.res = 0;
             } else if(err.errno == 50) {
@@ -83,8 +86,8 @@ commands = {
     },
     'rmdir': function(json) {
         if(isAdmin()) {
-            if(query.recursive == "") {
-                function remdir(dir) {
+            if(query.recursive === "") {
+                var remdir = function(dir) {
                     ls = fs.readdirSync(dir);
                     for (var i = ls.length - 1; i >= 0; i--) {
                         try {
@@ -93,19 +96,20 @@ commands = {
                             if(err.errno == 50)
                                 remdir(dir + '/' + ls[i]);
                         }
-                    };
+                    }
                     fs.rmdirSync(dir);
-                }
+                };
                 remdir(query.PWD + query['0']);
                 json.respuesta.mensaje = true;
                 json.respuesta.mensaje = 0;
             } else {
+                var err;
                 try {
-                    var err = fs.rmdirSync(query.PWD + query['0']);
+                    err = fs.rmdirSync(query.PWD + query['0']);
                 } catch(Exception) {
-                    var err = Exception;
+                    err = Exception;
                 }
-                if(err == undefined) {
+                if(err === undefined) {
                     json.respuesta.mensaje = true;
                     json.respuesta.res = 0;
                 } else if(err.errno == 27) {
@@ -132,7 +136,7 @@ commands = {
             } catch(Exception) {
                 var err = Exception;
             }
-            if(err == undefined) {
+            if(err === undefined) {
                 json.respuesta.mensaje = true;
                 json.respuesta.res = 0;
             } else {
@@ -152,7 +156,7 @@ commands = {
             } catch(Exception) {
                 var err = Exception;
             }
-            if(err == undefined) {
+            if(err === undefined) {
                 json.respuesta.mensaje = true;
                 json.respuesta.res = 0;
             } else {
@@ -166,11 +170,12 @@ commands = {
         return json;
     },
     'cat': function(json) {
+        var out;
         if(exists(query.PWD + query['0']) && isFile(query.PWD + query['0'])) {
             out = fs.readFileSync(query['0'], {encoding: 'utf-8'});
-            out = out.replace(/&/g, '&amp;').replace(/</g, '&lt;')
-            out = out.replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-            out = out.replace(/\n/g, '<br>').replace(/  /g, '&nbsp;&nbsp;')
+            out = out.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+            out = out.replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            out = out.replace(/\n/g, '<br>').replace(/  /g, '&nbsp;&nbsp;');
             json.respuesta.mensaje = out;
             json.respuesta.res = 0;
         } else if(!exists(query.PWD + query['0'])) {
@@ -183,7 +188,7 @@ commands = {
         return json;
     },
     'login': function(json) {
-        if(users[query['0']] && (users[query['0']].password == null || users[query['0']].password == query['password'])) {
+        if(users[query['0']] && (users[query['0']].password === null || users[query['0']].password == query['password'])) {
             json.respuesta.mensaje = query['0'];
             json.respuesta.res = 0;
         } else if(users[query['0']] === undefined) {
@@ -195,7 +200,7 @@ commands = {
         }
         return json;
     }
-}
+};
 
 //Server
 http.createServer(function(req, res) {
@@ -232,15 +237,16 @@ console.log('node.js (' + process.version + ') ' + os.type() + ' ' + os.arch() +
 if(process.argv[2] === '--http' || process.argv[3] === '--http') {
     var port = 80;
     if((process.argv[2] && process.argv[3]) || (process.argv[3] && process.argv[4]))
-        port = parseInt(process.argv[3] | process.argv[4]);
+        port = parseInt(process.argv[3] | process.argv[4], 10);
     var server = http.createServer().listen(port, 'localhost');
     console.log('Local http server running at http://localhost:'+port+'/');
     server.on('request', function(req, res) {
         if(req.method === "GET") {
             req.url = req.url.replace('/', './');
             if(req.url === "./") req.url = './webterminal.html';
+            var file_contents;
             try {
-                var file_contents = fs.readFileSync(os.type().indexOf('Windows') !== -1 ? req.url.replace(/\//g, '\\') : req.url, 'utf-8');
+                file_contents = fs.readFileSync(os.type().indexOf('Windows') !== -1 ? req.url.replace(/\//g, '\\') : req.url, 'utf-8');
             } catch(e) {
                 res.statusCode = 404;
                 res.end('<h1>Error 404 | Page not found</h1><br><p>'+req.url+'</p>');
