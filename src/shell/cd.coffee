@@ -9,7 +9,7 @@ shell.cd = (c) ->
                 else
                     _this.env['PWD'] = json.respuesta.mensaje
                     newLine()
-            ).error(-> throw 'Server script doesn\'t exist.')
+            ).error(-> throw 'Server script doesn\'t exist.') //Yo aqui pondria un poco mas de codigo porque me parece poco
         else newLine()
     else
         newLine()
