@@ -18,7 +18,25 @@
     script: void 0,
     phpscript: '/',
     width: 484,
-    height: 314
+    height: 314,
+    colors: {
+      black: 'black',
+      red: '#990000',
+      green: '#00A600',
+      yellow: '#999900',
+      blue: '#0000B2',
+      magenta: '#B200B2',
+      cyan: '#00A6B2',
+      lightgray: '#BFBFBF',
+      darkgray: '#666666',
+      lightred: '#E50000',
+      lightgreen: '#00D900',
+      lightyellow: '#E5E500',
+      lightblue: '#0000FF',
+      lightmagenta: '#E500E5',
+      lightcyan: '#00E5E5',
+      white: '#E5E5E5'
+    }
   };
 
   env = {
@@ -143,6 +161,8 @@
   };
 
   getFormatting = function(value) {
+    var c;
+    c = $.webterminal.conf.colors;
     switch (value) {
       case 0:
         return {
@@ -151,82 +171,82 @@
         };
       case 30:
         return {
-          style: 'color:black',
+          style: 'color:' + c.black,
           value: 'black'
         };
       case 31:
         return {
-          style: 'color:#990000',
+          style: 'color:' + c.red,
           value: 'red'
         };
       case 32:
         return {
-          style: 'color:#00A600',
+          style: 'color:' + c.green,
           value: 'green'
         };
       case 33:
         return {
-          style: 'color:#999900',
+          style: 'color:' + c.yellow,
           value: 'yellow'
         };
       case 34:
         return {
-          style: 'color:#0000B2',
+          style: 'color:' + c.blue,
           value: 'blue'
         };
       case 35:
         return {
-          style: 'color:#B200B2',
+          style: 'color:' + c.magenta,
           value: 'magenta'
         };
       case 36:
         return {
-          style: 'color:#00A6B2',
+          style: 'color:' + c.cyan,
           value: 'cyan'
         };
       case 37:
         return {
-          style: 'color:BFBFBF',
+          style: 'color:' + c.lightgray,
           value: 'light gray'
         };
       case 90:
         return {
-          style: 'color:666666',
+          style: 'color:' + c.darkgray,
           value: 'dark gray'
         };
       case 91:
         return {
-          style: 'color:#E50000',
+          style: 'color:' + c.lightred,
           value: 'light red'
         };
       case 92:
         return {
-          style: 'color:#00D900',
+          style: 'color:' + c.lightgreen,
           value: 'light green'
         };
       case 93:
         return {
-          style: 'color:#E5E500',
+          style: 'color:' + c.lightyellow,
           value: 'light yellow'
         };
       case 94:
         return {
-          style: 'color:#0000FF',
+          style: 'color:' + c.lightblue,
           value: 'light blue'
         };
       case 95:
         return {
-          style: 'color:#E500E5',
+          style: 'color:' + c.lightmagenta,
           value: 'light magenta'
         };
       case 96:
         return {
-          style: 'color:#00E5E5',
+          style: 'color:' + c.lightcyan,
           value: 'light cyan'
         };
       case 97:
         return {
-          style: 'color:#E5E5E5',
+          style: 'color:' + c.white,
           value: 'white'
         };
     }
@@ -781,6 +801,7 @@
   Plugin = function(element, options) {
     this.element = element;
     this.conf = $.extend({}, conf, options.conf);
+    this.conf.colors = $.extend({}, conf.colors, options.conf.colors);
     this.shell = $.extend({}, shell, options.shell);
     this.env = $.extend({}, env, options.env);
     this.help = $.extend({}, help, options.help);
@@ -927,7 +948,7 @@
               debugger;
             }
           } else if (_this.shell[comando[0]] === void 0 && comando[0] !== void 0) {
-            _this.shell["none"](comando);
+            _this.shell["none"](comando, newLine);
           }
         }
         return $(_this.element).scrollTop(100000);

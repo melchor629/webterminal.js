@@ -1,6 +1,7 @@
 Plugin = (element, options) ->
     this.element = element
     this.conf = $.extend({}, conf, options.conf)
+    this.conf.colors = $.extend({}, conf.colors, options.conf.colors)
     this.shell = $.extend({}, shell, options.shell)
     this.env = $.extend({}, env, options.env)
     this.help = $.extend({}, help, options.help)
@@ -124,7 +125,7 @@ Plugin.prototype =
                         throw e
                         debugger
                 else if _this.shell[comando[0]] is undefined and comando[0] isnt undefined
-                        _this.shell["none"](comando)
+                        _this.shell["none"](comando, newLine)
 
             $(_this.element).scrollTop(100000)
         ).keydown((e) ->

@@ -92,41 +92,42 @@ errorFormatNNL = (cmd, arg, msg) ->
 
 #ANSI/VT100 colors and text styles
 getFormatting = (value) ->
+    c = $.webterminal.conf.colors
     switch value
         when 0
             { style: '', value: null }
         when 30
-            { style: 'color:black', value: 'black' }
+            { style: 'color:'+c.black, value: 'black' }
         when 31
-            { style: 'color:#990000', value: 'red' }
+            { style: 'color:'+c.red, value: 'red' }
         when 32
-            { style: 'color:#00A600', value: 'green' }
+            { style: 'color:'+c.green, value: 'green' }
         when 33
-            { style: 'color:#999900', value: 'yellow' }
+            { style: 'color:'+c.yellow, value: 'yellow' }
         when 34
-            { style: 'color:#0000B2', value: 'blue' }
+            { style: 'color:'+c.blue, value: 'blue' }
         when 35
-            { style: 'color:#B200B2', value: 'magenta' }
+            { style: 'color:'+c.magenta, value: 'magenta' }
         when 36
-            { style: 'color:#00A6B2', value: 'cyan' }
+            { style: 'color:'+c.cyan, value: 'cyan' }
         when 37
-            { style: 'color:BFBFBF', value: 'light gray' }
+            { style: 'color:'+c.lightgray, value: 'light gray' }
         when 90
-            { style: 'color:666666', value: 'dark gray' }
+            { style: 'color:'+c.darkgray, value: 'dark gray' }
         when 91
-            { style: 'color:#E50000', value: 'light red' }
+            { style: 'color:'+c.lightred, value: 'light red' }
         when 92
-            { style: 'color:#00D900', value: 'light green' }
+            { style: 'color:'+c.lightgreen, value: 'light green' }
         when 93
-            { style: 'color:#E5E500', value: 'light yellow' }
+            { style: 'color:'+c.lightyellow, value: 'light yellow' }
         when 94
-            { style: 'color:#0000FF', value: 'light blue' }
+            { style: 'color:'+c.lightblue, value: 'light blue' }
         when 95
-            { style: 'color:#E500E5', value: 'light magenta' }
+            { style: 'color:'+c.lightmagenta, value: 'light magenta' }
         when 96
-            { style: 'color:#00E5E5', value: 'light cyan' }
+            { style: 'color:'+c.lightcyan, value: 'light cyan' }
         when 97
-            { style: 'color:#E5E5E5', value: 'white' }
+            { style: 'color:'+c.white, value: 'white' }
 
 #Loop of the text cursor
 (parpadeo = ()->

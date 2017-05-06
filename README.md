@@ -50,7 +50,8 @@ configuration = {
     script: 'node.js',  //Tells what type of script will use
     phpscript: '/',     //If we use php script, tell where in the server is the script ex: for 'http://localhost/webterminal/server.php the value will be '/webterminal/'
     width: 484,         //Width of the console div
-    height: 314         //Height of the console div
+    height: 314,        //Height of the console div
+    colors: {...}       //A list of ANSI/VT100 Colors
 }
 $('.console').webterminal({conf: configuration});
 ```
