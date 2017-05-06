@@ -1,4 +1,4 @@
-shell.rmdir = (c) ->
+shell.rmdir = (c, onEnd) ->
     if c[1] isnt undefined
         file = dirHelper(c[1])
         url = urlHelper('rmdir', file)
@@ -9,9 +9,9 @@ shell.rmdir = (c) ->
                 if json.respuesta.res is 1
                     errorFormat 'rmdir', c[1], json.respuesta.mensaje
                 else
-                    newLine()
+                    onEnd()
             ).error(-> throw 'Server script doesn\'t exist.')
-        else newLine()
+        else onEnd()
     else
         print('usage: rm directory')
-        newLine()
+        onEnd()

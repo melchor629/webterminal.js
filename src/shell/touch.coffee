@@ -1,4 +1,4 @@
-shell.touch = (c) ->
+shell.touch = (c, onEnd) ->
     if c[1] isnt undefined
         fileName = dirHelper c[1]
         url = urlHelper 'touch', c[1]
@@ -7,9 +7,9 @@ shell.touch = (c) ->
                 if json.respuesta.res is 1
                     errorFormat 'touch', c[1], json.respuesta.mensaje
                 else
-                    newLine()
+                    onEnd()
             ).error(-> throw 'Server script doesn\'t exist.')
-        else newLine()
+        else onEnd()
     else
         print 'usage: touch fileName'
-        newLine()
+        onEnd()

@@ -5,3 +5,4 @@
 # Special
 ###########
 *.fpng
+node_modules/

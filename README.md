@@ -59,19 +59,19 @@ The `server.js` and `server.php` are script to use in the server. Use `server.ph
 To extend the terminal commands, you need first to create them. See the example:
 ```javascript
 var commands = {
-    "hello": function() {
+    "hello": function(args, cbk) {
         $.webconsole.print("Hello World!");
-        $.webconsole.newLine()
+        cbk()
     },
-    "salute": function(c) {
+    "salute": function(args, cbk) {
         $.webconsole.print("Hello " + c[1] + "!");
-        $.webconsole.newLine()
+        cbk()
     }
 };
 $(".console").webconsole({shell: commands});
 ```
 You create an array with the name of the command and a function to do when is called. To print something in the console while is running your command, you need this code:`$.webconsole.print()`, as you can see in the above example.
-And if you, in the console, type *hello* it returns `Hello World!` and if you type *salute melchor629* it returns `Hello melchor629!`. **Very important**, the `$.webconsole.newLine()` is important to be in the function because is part of the console functionally. I put this function there because of async functions (*non-blocking functions*). You can see an example in the `ls` command or `cd` command.
+And if you, in the console, type *hello* it returns `Hello World!` and if you type *salute melchor629* it returns `Hello melchor629!`. **Very important**, the `cbk()` is important to be in the function because is part of the console functionally. With this `callback`, you can safely make asynchronous code, but **you must** call this callback to make sure that the webterminal will contine working when you're done. You can see an example in the `ls` command or `cd` command.
 
 ### Put extra initial environment variables
 To start the console with extra environment variables, you have to do something similar to the above item. See the example:
@@ -88,13 +88,13 @@ You create an array with the variable and its value. The value can be a String o
 Start doing the same as the  *extend commands* item:
 ```javascript
 var commands = {
-    "hello": function() {
+    "hello": function(args, cbk) {
         $.webconsole.print("Hello World!");
-        $.webconsole.newLine()
+        cbk()
     },
-    "salute": function(c) {
-        $.webconsole.print("Hello " + c[1] + "!");
-        $.webconsole.newLine()
+    "salute": function(args, cbk) {
+        $.webconsole.print("Hello " + args[1] + "!");
+        cbk()
     }
 };
 ```

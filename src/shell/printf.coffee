@@ -20,10 +20,10 @@
   #
   #      Translated to coffeescript by melchor9000, with some modifications
   #      for be used as a command
-shell.printf = (c) ->
+shell.printf = (c, onEnd) ->
     if c.length < 2
         print 'printf: usage printf format [arguments]'
-        newLine()
+        onEnd()
         return
 
     regex = /%%|%(\d+\$)?([-+\'#0 ]*)(\*\d+\$|\*|\d+)?(\.(\*\d+\$|\*|\d+))?([scboxXuideEfFgG])/g
@@ -152,4 +152,4 @@ shell.printf = (c) ->
             else
                 substring
     print format.replace(regex, doFormat)
-    newLine()
+    onEnd()

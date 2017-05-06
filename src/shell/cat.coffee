@@ -1,4 +1,4 @@
-shell.cat = (c) ->
+shell.cat = (c, onEnd) ->
     #TODO add more functionality, because this command is simple but powerful
     if c[1] isnt undefined and c[2] is undefined
         fileName = encodeURI dirHelper c[1]
@@ -7,12 +7,12 @@ shell.cat = (c) ->
             $.getJSON(url, (json, stat, xhr) ->
                 if json.respuesta.res isnt 1
                     print '<div style="text-align:left;">'+json.respuesta.mensaje+'</div>'
-                    newLine()
+                    onEnd()
                 else
                     errorFormat 'cat', c[1], json.respuesta.mensaje
             ).error(-> throw 'Server script doesn\'t exist.')
         else
-            newLine()
+            onEnd()
     else if c[1] isnt undefined and c[2] isnt undefined
         if c[1].indexOf '-' is 0
             if c[1] is '-n'
@@ -32,7 +32,7 @@ shell.cat = (c) ->
                             else if i < 9999
                                 out = out + '&nbsp;' + (i + 1) + ' ' + v + '<br>'
                         print '<div style="text-align:left;">'+out+'</div>';
-                        newLine()
+                        onEnd()
                     else
                         errorFormat 'cat', c[2], json.respuesta.mensaje
                 ).error(-> throw 'Server script doesn\'t exist.')
@@ -61,13 +61,13 @@ shell.cat = (c) ->
                                 out = out + '<br>';
                         }`
                         print '<div style="text-align:left;">'+out+'</div>';
-                        newLine()
+                        onEnd()
                     else
                         errorFormat 'cat', c[1], json.respuesta.mensaje
                 ).error(-> throw 'Server script doesn\'t exist.')
         else
             print 'usage: cat [-n] file'
-            newLine()
+            onEnd()
     else
         print 'usage: cat file'
-        newLine()
+        onEnd()

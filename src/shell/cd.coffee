@@ -1,4 +1,4 @@
-shell.cd = (c) ->
+shell.cd = (c, onEnd) ->
     if c[1] isnt undefined
         carpeta = dirHelper(c[1])
         url = urlHelper('cd', carpeta)
@@ -8,8 +8,8 @@ shell.cd = (c) ->
                     errorFormat 'cd', c[1], json.respuesta.mensaje
                 else
                     _this.env['PWD'] = json.respuesta.mensaje
-                    newLine()
+                    onEnd()
             ).error(-> throw 'Server script doesn\'t exist.')
-        else newLine()
+        else onEnd()
     else
-        newLine()
+        onEnd()

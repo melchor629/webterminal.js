@@ -1,22 +1,22 @@
-shell.ls = (c) ->
+shell.ls = (c, onEnd) ->
     if c[1] and c[1].search('-') isnt -1
         errorFormatNNL 'ls', c[1], 'illegal option'
         print 'usage: ls [directory ...]'
-        newLine()
+        onEnd()
     else if c.length is 2 or c.length is 1
         url = urlHelper('ls', if c[1] then _this.env.PWD + c[1] else _this.env['PWD'])
         if url
             $.getJSON(url, (json, stat, xhr) ->
                 if json.respuesta.res is 0
                     $.each(json.respuesta.mensaje, (i, v) ->
-                        print(v)
+                        print(v + "\n")
                     )
-                    newLine()
+                    onEnd()
                 else
                     errorFormat 'ls', c[1], json.respuesta.mensaje
             ).error(()-> throw 'Server script doesn\'t exist.' )
         else
-            newLine()
+            onEnd()
     else
         $.each(c, (value, key) ->
             if value
@@ -26,7 +26,7 @@ shell.ls = (c) ->
                         if json.respuesta.res is 0
                             print key + ':'
                             $.each(json.respuesta.mensaje, (i, v) ->
-                                print(v)
+                                print(v + "\n")
                             )
                             if value+1 isnt c.length
                                 print ''
@@ -37,4 +37,4 @@ shell.ls = (c) ->
                 else
                     print ''
         )
-        newLine()
+        onEnd()

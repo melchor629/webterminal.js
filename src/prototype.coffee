@@ -61,7 +61,6 @@ Plugin.prototype =
         )
 
     console: ->
-        #TODO Bug: Chrome doesn't pass delete key
         _this = this
         $(document).keypress((e) ->
             keyCode = e.which
@@ -78,11 +77,8 @@ Plugin.prototype =
                 $(".consola").append('<div class="consola-line" style="width: '+_this.width+'px"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text('sh-3.2# '+_this.env["PWD"]+" "+_this.env["USER"]+"$ ")
             else if String.fromCharCode(keyCode) isnt undefined and keyCode isnt 8 and keyCode isnt 13 and keyCode isnt 0
                 append String.fromCharCode keyCode
-            else if keyCode is 8 #Eliminar caracter
-                remove()
             else if keyCode == 13 #Nueva linea -> enviar comando
                 $(line).find("span#l").remove()
-                $(line).append("<br>")
                 comando = $(line).find("span#g").text().split(" ")
                 _this.historial[_this.historial.length] = $(line).find("span#g").text()
                 $.each(comando, (a, b) -> #Busca variables en el comando
@@ -116,9 +112,12 @@ Plugin.prototype =
                         tempComandoString += ' ' + value
                 )
                 comando = fcomando
+                print("\n")
                 if _this.shell[comando[0]] isnt undefined and comando[0] isnt undefined
                     try
-                        _this.shell[comando[0]](comando)
+                        _this.shell[comando[0]](comando, () ->
+                            newLine()
+                        )
                     catch e
                         print '<span style="color:red">&gt;&nbsp;Has ocurred an error. See dev tools console</span>'
                         newLine()
@@ -156,6 +155,8 @@ Plugin.prototype =
                     if num <= _this.historial.length and num >= 0
                         $(line).find("span#g").empty().data('historial', num)
                         append(comando)
+            else if keyCode is 8 #Eliminar caracter
+                remove()
             $(_this.element).scrollTop(100000)
             if $(_this.element).height() < $(".consola").height()
                 $(".consola-line").addClass("consola-line-short")

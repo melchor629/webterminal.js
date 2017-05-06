@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="es">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Consola</title>
@@ -36,7 +37,13 @@
                 server: true,
                 script: 'node.js'
             };
-            $('.console').webterminal({conf: configuration});
+            commands = {
+                colorful: function(args, cbk) {
+                    $.webterminal.print('\x1B[30mP\x1B[31m\x1B[32ma\x1B[33mc\x1B[34mo\x1B[0m...')
+                    cbk();
+                }
+            }
+            $('.console').webterminal({conf: configuration,shell: commands});
             $('.consolas').animate({'opacity':1}, 1111);
         })
         </script>

@@ -4,7 +4,24 @@ append = (car) ->
 
 #Print something in the line, HTML is valid
 print = (str) ->
-    $(getLine()).find("span#g").append("<br>" + str)
+    color = null
+    while str.match(/\x1B/)
+        pos = str.indexOf('\x1B')
+        if str.charAt(pos + 1) is '['
+            pos2 = str.indexOf('m', pos+2)
+            num = Number str.substring(pos + 2, pos2)
+            newStr = ''
+            if num is 0
+                color = null
+                newStr += '</span>'
+            else
+                fmt = getFormatting num
+                newStr += if color isnt null then '</span>' else ''
+                newStr += '<span style="'+fmt.style+'">'
+                color = fmt.value
+            str = str.replace(str.substring(pos, pos2 + 1), newStr)
+    str = str.replace(/\n/g, '<br/>')
+    $(getLine()).find("span#g").append(str)
 
 #Get the current HTMLDomObject line
 getLine = ->
@@ -38,9 +55,9 @@ urlHelper = (command, arg) ->
             throw $.webterminal.idioma.scriptError
         o = 0;
         for i in arguments
-            if _i isnt 0
-                url += '&' + (_i-1) + '=' + encodeURI arguments[_i]
-                o++
+            if o isnt 0
+                url += '&' + (o-1) + '=' + encodeURI i
+            o++
         url += '&PWD=' + encodeURI _this.env.PWD + '&argc=' + o
         url
         
@@ -72,6 +89,44 @@ errorFormat = (cmd, arg, msg) ->
 #Bash error message format without newLine()
 errorFormatNNL = (cmd, arg, msg) ->
     print "#{cmd}: #{arg}: #{msg}"
+
+#ANSI/VT100 colors and text styles
+getFormatting = (value) ->
+    switch value
+        when 0
+            { style: '', value: null }
+        when 30
+            { style: 'color:black', value: 'black' }
+        when 31
+            { style: 'color:#990000', value: 'red' }
+        when 32
+            { style: 'color:#00A600', value: 'green' }
+        when 33
+            { style: 'color:#999900', value: 'yellow' }
+        when 34
+            { style: 'color:#0000B2', value: 'blue' }
+        when 35
+            { style: 'color:#B200B2', value: 'magenta' }
+        when 36
+            { style: 'color:#00A6B2', value: 'cyan' }
+        when 37
+            { style: 'color:BFBFBF', value: 'light gray' }
+        when 90
+            { style: 'color:666666', value: 'dark gray' }
+        when 91
+            { style: 'color:#E50000', value: 'light red' }
+        when 92
+            { style: 'color:#00D900', value: 'light green' }
+        when 93
+            { style: 'color:#E5E500', value: 'light yellow' }
+        when 94
+            { style: 'color:#0000FF', value: 'light blue' }
+        when 95
+            { style: 'color:#E500E5', value: 'light magenta' }
+        when 96
+            { style: 'color:#00E5E5', value: 'light cyan' }
+        when 97
+            { style: 'color:#E5E5E5', value: 'white' }
 
 #Loop of the text cursor
 (parpadeo = ()->

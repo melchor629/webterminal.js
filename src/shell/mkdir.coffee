@@ -1,4 +1,4 @@
-shell.mkdir = (c) ->
+shell.mkdir = (c, onEnd) ->
     if c[1] isnt undefined
         fileName = dirHelper c[1]
         url = urlHelper 'mkdir', c[1]
@@ -7,9 +7,9 @@ shell.mkdir = (c) ->
                 if json.respuesta.res is 1
                     errorFormat 'mkdir', c[1], json.respuesta.mensaje
                 else
-                    newLine()
+                    onEnd()
             ).error(-> throw 'Server script doesn\'t exist.')
-        else newLine()
+        else onEnd()
     else
         print 'usage: mkdir directoryName'
-        newLine()
+        onEnd()
