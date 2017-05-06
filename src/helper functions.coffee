@@ -4,23 +4,32 @@ append = (car) ->
 
 #Print something in the line, HTML is valid
 print = (str) ->
-    color = null
+    color = {}
+    added = 0
     while str.match(/\x1B/)
         pos = str.indexOf('\x1B')
         if str.charAt(pos + 1) is '['
             pos2 = str.indexOf('m', pos+2)
-            num = Number str.substring(pos + 2, pos2)
-            newStr = ''
-            if num is 0
-                color = null
-                newStr += '</span>'
-            else
-                fmt = getFormatting num
-                newStr += if color isnt null then '</span>' else ''
-                newStr += '<span style="'+fmt.style+'">'
-                color = fmt.value
+            nums = str.substring(pos + 2, pos2).split ';'
+            for num in nums
+                num = Number num
+                if num is 0
+                    color = {}
+                else if num is 21
+                    color.bold = undefined
+                else if num is 22
+                    color.dim = undefined
+                else if num is 24
+                    color.underline = undefined
+                else if num is 28
+                    color.hidden = undefined
+                else
+                    fmt = getFormatting num
+                    color[fmt.value] = fmt.style
+            newStr = if added++ is 0 then '' else '</span>'
+            newStr += "<span style=\"#{formattingToCss color}\">"
             str = str.replace(str.substring(pos, pos2 + 1), newStr)
-    str = str.replace(/\n/g, '<br/>')
+    str = str.replace(/\n/g, '<br>')
     $(getLine()).find("span#g").append(str)
 
 #Get the current HTMLDomObject line
@@ -60,7 +69,7 @@ urlHelper = (command, arg) ->
             o++
         url += '&PWD=' + encodeURI _this.env.PWD + '&argc=' + o
         url
-        
+
 
 #Parses some special directions, like ../
 dirHelper = (folder) ->
@@ -94,40 +103,86 @@ errorFormatNNL = (cmd, arg, msg) ->
 getFormatting = (value) ->
     c = $.webterminal.conf.colors
     switch value
-        when 0
-            { style: '', value: null }
+        when 1
+            { style: 'font-weight:bold', value: 'bold' }
+        when 2
+            { style: 'opacity: 0.5', value: 'dim' }
+        when 4
+            { style: 'text-decoration:underline', value: 'underline' }
+        when 8
+            { style: 'visibility: hidden', value: 'hidden' }
         when 30
-            { style: 'color:'+c.black, value: 'black' }
+            { style: 'color:'+c.black, value: 'color' }
         when 31
-            { style: 'color:'+c.red, value: 'red' }
+            { style: 'color:'+c.red, value: 'color' }
         when 32
-            { style: 'color:'+c.green, value: 'green' }
+            { style: 'color:'+c.green, value: 'color' }
         when 33
-            { style: 'color:'+c.yellow, value: 'yellow' }
+            { style: 'color:'+c.yellow, value: 'color' }
         when 34
-            { style: 'color:'+c.blue, value: 'blue' }
+            { style: 'color:'+c.blue, value: 'color' }
         when 35
-            { style: 'color:'+c.magenta, value: 'magenta' }
+            { style: 'color:'+c.magenta, value: 'color' }
         when 36
-            { style: 'color:'+c.cyan, value: 'cyan' }
+            { style: 'color:'+c.cyan, value: 'color' }
         when 37
-            { style: 'color:'+c.lightgray, value: 'light gray' }
+            { style: 'color:'+c.lightgray, value: 'color' }
+        when 40
+            { style: 'background-color:'+c.black, value: 'background' }
+        when 41
+            { style: 'background-color:'+c.red, value: 'background' }
+        when 42
+            { style: 'background-color:'+c.green, value: 'background' }
+        when 43
+            { style: 'background-color:'+c.yellow, value: 'background' }
+        when 44
+            { style: 'background-color:'+c.blue, value: 'background' }
+        when 45
+            { style: 'background-color:'+c.magenta, value: 'background' }
+        when 46
+            { style: 'background-color:'+c.cyan, value: 'background' }
+        when 47
+            { style: 'background-color:'+c.lightgray, value: 'background' }
+        when 49
+            { style: 'background-color:transparent', value: 'background' }
         when 90
-            { style: 'color:'+c.darkgray, value: 'dark gray' }
+            { style: 'color:'+c.darkgray, value: 'color' }
         when 91
-            { style: 'color:'+c.lightred, value: 'light red' }
+            { style: 'color:'+c.lightred, value: 'color' }
         when 92
-            { style: 'color:'+c.lightgreen, value: 'light green' }
+            { style: 'color:'+c.lightgreen, value: 'color' }
         when 93
-            { style: 'color:'+c.lightyellow, value: 'light yellow' }
+            { style: 'color:'+c.lightyellow, value: 'color' }
         when 94
-            { style: 'color:'+c.lightblue, value: 'light blue' }
+            { style: 'color:'+c.lightblue, value: 'color' }
         when 95
-            { style: 'color:'+c.lightmagenta, value: 'light magenta' }
+            { style: 'color:'+c.lightmagenta, value: 'color' }
         when 96
-            { style: 'color:'+c.lightcyan, value: 'light cyan' }
+            { style: 'color:'+c.lightcyan, value: 'color' }
         when 97
-            { style: 'color:'+c.white, value: 'white' }
+            { style: 'color:'+c.white, value: 'color' }
+        when 100
+            { style: 'background-color:'+c.darkgray, value: 'background' }
+        when 101
+            { style: 'background-color:'+c.lightred, value: 'background' }
+        when 102
+            { style: 'background-color:'+c.lightgreen, value: 'background' }
+        when 103
+            { style: 'background-color:'+c.lightyellow, value: 'background' }
+        when 104
+            { style: 'background-color:'+c.lightblue, value: 'background' }
+        when 105
+            { style: 'background-color:'+c.lightmagenta, value: 'background' }
+        when 106
+            { style: 'background-color:'+c.lightcyan, value: 'background' }
+        when 107
+            { style: 'background-color:'+c.white, value: 'background' }
+
+formattingToCss = (fmt) ->
+    css = ''
+    for k of fmt
+        css += "#{fmt[k]};"
+    css
 
 #Loop of the text cursor
 (parpadeo = ()->
