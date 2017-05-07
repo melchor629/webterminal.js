@@ -1,4 +1,4 @@
-{
+addLang('en-gb', {
     "shell": {
         "help": {
             "1": "These shell commands are defined internally or externally. Type `help` to see this list.",
@@ -25,4 +25,4 @@
         "cat": ["[-n -b] [file] prints the file in the normal output", "Prints any file into the normal output.\n\t-n Put the line number next the line\n\t-b Number the non-blank output lines"]
     },
     "scriptError": "The value for `server` is true but you don't give a correct value for `script` [node.js, php]"
-}
+})

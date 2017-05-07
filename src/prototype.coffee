@@ -45,21 +45,11 @@ Plugin.prototype =
             $(this.element).append('<div class="consola"></div>').find(".consola").append('<div class="consola-line" style="width:'+this.width+'px"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text('sh-3.2# '+env["PWD"]+" "+env["USER"]+"$ ")
 
     lang: ->
-        disponible = ['es-es', 'en-gb', 'en-us']
-        idioma = window.navigator.language
-        isThere = false
-        $.each(disponible, (i, v) ->
-            if not isThere
-                if v.match(idioma)
-                    isThere = true
-                    idioma = v
-        )
-        if not isThere
+        idioma = window.navigator.language.toLowerCase()
+        if lang.available.indexOf(idioma) is -1
             idioma = 'en-gb'
-        $.getJSON('lib/lang/' + idioma + '.json', (json, stat, xhr) ->
-            $.webterminal.idioma = json
-            Plugin.prototype.lang = json
-        )
+        $.webterminal.idioma = lang.translations[idioma]
+        Plugin.prototype.lang = lang.translations[idioma]
 
     console: ->
         _this = this
@@ -74,7 +64,7 @@ Plugin.prototype =
 
             if $(".consola").length is 0
                 $(_this.element).append('<div class="consola"></div>').find("span#l").remove()
-            if lines is 0 
+            if lines is 0
                 $(".consola").append('<div class="consola-line" style="width: '+_this.width+'px"><span id="t"></span><span id="g"></span><span id="l">_</span></div>').find("span#t").text('sh-3.2# '+_this.env["PWD"]+" "+_this.env["USER"]+"$ ")
             else if String.fromCharCode(keyCode) isnt undefined and keyCode isnt 8 and keyCode isnt 13 and keyCode isnt 0
                 append String.fromCharCode keyCode
@@ -108,7 +98,7 @@ Plugin.prototype =
                         else
                             fcomando.push value.substr 1, value.length-2
                     else if not tempComandoString
-                        fcomando.push value 
+                        fcomando.push value
                     else if tempComandoString
                         tempComandoString += ' ' + value
                 )
@@ -158,6 +148,10 @@ Plugin.prototype =
                         append(comando)
             else if keyCode is 8 #Eliminar caracter
                 remove()
+            else if keyCode is 39 #Derecha
+                e.preventDefault()
+            else if keyCode is 37 #Izquierda
+                e.preventDefault()
             $(_this.element).scrollTop(100000)
             if $(_this.element).height() < $(".consola").height()
                 $(".consola-line").addClass("consola-line-short")

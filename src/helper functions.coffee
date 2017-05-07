@@ -184,6 +184,11 @@ formattingToCss = (fmt) ->
         css += "#{fmt[k]};"
     css
 
+#Add new lang
+addLang = (langId, translations) ->
+    lang.available.push langId
+    lang.translations[langId] = translations
+
 #Loop of the text cursor
 (parpadeo = ()->
     if $('span#l').length is 0

@@ -1,4 +1,4 @@
-{
+addLang('es-es', {
     "shell": {
         "help": {
             "1": "Estos comandos de consola están definidos interna o externamente. Escriba `help` para ver esta lista.",
@@ -25,4 +25,4 @@
         "cat": ["[-n -b] [file] imprime el contenido de un archivo", "Muestra el contenido de cualquier archivo.\n\t-n Enumera las lineas\n\t-b Enumera las lineas que no estén en blanco"]
     },
     "scriptError": "El valor para `server` is true pero no has dado un valor correcto para `script` [node.js, php]"
-}
+})

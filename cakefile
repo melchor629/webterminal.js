@@ -56,7 +56,7 @@ complete = (callback) ->
 simpleBuild = (afterCallback) ->
     console.time 'build'
     console.log c.green + 'Compiling coffee...'
-    coffee = spawn 'coffee', ['-c', '-j', 'webterminal.js', 'src/starting variables.coffee', 'src/helper functions.coffee', 'src/shell/', 'src/prototype.coffee']
+    coffee = spawn 'coffee', ['-c', '-j', 'webterminal.js', 'src/starting variables.coffee', 'src/helper functions.coffee', 'src/shell/', 'src/lang', 'src/prototype.coffee']
     coffee.stderr.on 'data', (data) ->
         process.stderr.write c.red + data.toString()
     coffee.stdout.on 'data', (data) ->
