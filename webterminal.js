@@ -587,7 +587,7 @@
   shell.login = function(c, onEnd) {
     var url;
     if (c[1] !== void 0) {
-      url = urlHelper('login', c[1]) + '&password=' + (c[2] !== void 0 ? MD5(c[2]) : 'null');
+      url = urlHelper('login', c[1]) + '&password=' + (c[2] !== void 0 ? sha256(c[1] + ":" + c[2]) : 'null');
       if (url) {
         return $.getJSON(url, function(json, stat, xhr) {
           if (json.respuesta.res === 1) {
@@ -1007,9 +1007,9 @@
         }
         js = document.createElement('script');
         js.id = id;
-        js.src = "lib/md5.min.js";
+        js.src = "https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.5.0/sha256.min.js";
         return fjs.parentNode.insertBefore(js, fjs);
-      })('md5');
+      })('sha256');
       this._showTerm();
       this.lang();
       this.enLaBusquedaDelTextoPerdido();

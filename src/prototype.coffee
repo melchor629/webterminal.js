@@ -16,9 +16,9 @@ Plugin.prototype =
             if document.getElementById(id)
                 return
             js = document.createElement('script'); js.id = id
-            js.src = "lib/md5.min.js"
+            js.src = "https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.5.0/sha256.min.js"
             fjs.parentNode.insertBefore(js, fjs)
-        )('md5')
+        )('sha256')
 
         this._showTerm()
         this.lang()
