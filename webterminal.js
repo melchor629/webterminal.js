@@ -393,6 +393,64 @@
     }, 10, parpadeo);
   })();
 
+  addLang('en-gb', {
+    "shell": {
+      "help": {
+        "1": "These shell commands are defined internally or externally. Type `help` to see this list.",
+        "2": "Type `help name` to find out more about the function `name`.",
+        "3": "Maybe some commands doesn't show up in this help, it depends on the web programmer.",
+        "noHelp": "-bash: help: no help topics match"
+      },
+      "none": "command not found."
+    },
+    "help": {
+      "help": ["Shows this help"],
+      "echo": ["[arg ...] prints the argument"],
+      "env": ["prints all the environment variables"],
+      "export": ["sets a variable"],
+      "reload": ["reload the console"],
+      "ls": ["[directory ...]", "a list of files and directories of the argument/s given"],
+      "cd": ["[directory] change the current working directory"],
+      "rm": ["[file] delete a file"],
+      "rmdir": ["[directory] removes a directory", "Removes a empty directory. In case of not be empty, you can use the option `-r`."],
+      "touch": ["[filename] create a file"],
+      "mkdir": ["[directoryname] create a folder"],
+      "login": ["[user] [password] like sudo, but in a session"],
+      "cwd": ["prints the cwd (Current Working Directory)"],
+      "cat": ["[-n -b] [file] prints the file in the normal output", "Prints any file into the normal output.\n\t-n Put the line number next the line\n\t-b Number the non-blank output lines"]
+    },
+    "scriptError": "The value for `server` is true but you don't give a correct value for `script` [node.js, php]"
+  });
+
+  addLang('es-es', {
+    "shell": {
+      "help": {
+        "1": "Estos comandos de consola están definidos interna o externamente. Escriba `help` para ver esta lista.",
+        "2": "Escriba `help nombre` para encontrar más información sobre el comando `nombre`.",
+        "3": "Tal vez algunos comandos no se muestren en esta ayuda, depende del programador.",
+        "noHelp": "-bash: help: ningún tópico de ayuda encaja con"
+      },
+      "none": "comando no encontrado."
+    },
+    "help": {
+      "help": ["Muestra esta ayuda"],
+      "echo": ["[arg ...] imprime el argumento"],
+      "env": ["imprime todos las variables de entorno"],
+      "export": ["ajusta una variable"],
+      "reload": ["recarga la consola"],
+      "ls": ["[directory ...]", "una lista de archivos y carpetas del argumento/s"],
+      "cd": ["[directory] cambia el direcotrio actual de trabajo"],
+      "rm": ["[file] elimina un archivo"],
+      "rmdir": ["[directory] elimina un directorio", "Elimina una carpeta vacía. Si no está vacía puedes usar la opción `-r`."],
+      "touch": ["[filename] crea un archivo"],
+      "mkdir": ["[directoryname] crea una carpeta"],
+      "login": ["[user] [password] como sudo, pero en sesión"],
+      "cwd": ["imprime el cwd (Current Working Directory)"],
+      "cat": ["[-n -b] [file] imprime el contenido de un archivo", "Muestra el contenido de cualquier archivo.\n\t-n Enumera las lineas\n\t-b Enumera las lineas que no estén en blanco"]
+    },
+    "scriptError": "El valor para `server` is true pero no has dado un valor correcto para `script` [node.js, php]"
+  });
+
   shell.cat = function(c, onEnd) {
     var fileName, url;
     if (c[1] !== void 0 && c[2] === void 0) {
@@ -927,64 +985,6 @@
       return onEnd();
     }
   };
-
-  addLang('en-gb', {
-    "shell": {
-      "help": {
-        "1": "These shell commands are defined internally or externally. Type `help` to see this list.",
-        "2": "Type `help name` to find out more about the function `name`.",
-        "3": "Maybe some commands doesn't show up in this help, it depends on the web programmer.",
-        "noHelp": "-bash: help: no help topics match"
-      },
-      "none": "command not found."
-    },
-    "help": {
-      "help": ["Shows this help"],
-      "echo": ["[arg ...] prints the argument"],
-      "env": ["prints all the environment variables"],
-      "export": ["sets a variable"],
-      "reload": ["reload the console"],
-      "ls": ["[directory ...]", "a list of files and directories of the argument/s given"],
-      "cd": ["[directory] change the current working directory"],
-      "rm": ["[file] delete a file"],
-      "rmdir": ["[directory] removes a directory", "Removes a empty directory. In case of not be empty, you can use the option `-r`."],
-      "touch": ["[filename] create a file"],
-      "mkdir": ["[directoryname] create a folder"],
-      "login": ["[user] [password] like sudo, but in a session"],
-      "cwd": ["prints the cwd (Current Working Directory)"],
-      "cat": ["[-n -b] [file] prints the file in the normal output", "Prints any file into the normal output.\n\t-n Put the line number next the line\n\t-b Number the non-blank output lines"]
-    },
-    "scriptError": "The value for `server` is true but you don't give a correct value for `script` [node.js, php]"
-  });
-
-  addLang('es-es', {
-    "shell": {
-      "help": {
-        "1": "Estos comandos de consola están definidos interna o externamente. Escriba `help` para ver esta lista.",
-        "2": "Escriba `help nombre` para encontrar más información sobre el comando `nombre`.",
-        "3": "Tal vez algunos comandos no se muestren en esta ayuda, depende del programador.",
-        "noHelp": "-bash: help: ningún tópico de ayuda encaja con"
-      },
-      "none": "comando no encontrado."
-    },
-    "help": {
-      "help": ["Muestra esta ayuda"],
-      "echo": ["[arg ...] imprime el argumento"],
-      "env": ["imprime todos las variables de entorno"],
-      "export": ["ajusta una variable"],
-      "reload": ["recarga la consola"],
-      "ls": ["[directory ...]", "una lista de archivos y carpetas del argumento/s"],
-      "cd": ["[directory] cambia el direcotrio actual de trabajo"],
-      "rm": ["[file] elimina un archivo"],
-      "rmdir": ["[directory] elimina un directorio", "Elimina una carpeta vacía. Si no está vacía puedes usar la opción `-r`."],
-      "touch": ["[filename] crea un archivo"],
-      "mkdir": ["[directoryname] crea una carpeta"],
-      "login": ["[user] [password] como sudo, pero en sesión"],
-      "cwd": ["imprime el cwd (Current Working Directory)"],
-      "cat": ["[-n -b] [file] imprime el contenido de un archivo", "Muestra el contenido de cualquier archivo.\n\t-n Enumera las lineas\n\t-b Enumera las lineas que no estén en blanco"]
-    },
-    "scriptError": "El valor para `server` is true pero no has dado un valor correcto para `script` [node.js, php]"
-  });
 
   Plugin = function(element, options) {
     this.element = element;

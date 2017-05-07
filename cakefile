@@ -22,6 +22,14 @@ console.log c.yellow + '##################################################'
 console.log '#\t '+c.magenta+'webterminal.js cake file. v 0.2'+c.yellow+'         #'
 console.log '##################################################' + c.reset + '\n'
 
+listCoffeeFiles = (path) ->
+    files = fs.readdirSync path
+    filesp = []
+    for i in files
+        if i.indexOf('.coffee') isnt -1
+            filesp.push "#{path}/#{i}"
+    filesp
+
 full = (callback) ->
     simpleBuild (code) ->
         console.log c.green + 'Improving code...'
@@ -56,15 +64,18 @@ complete = (callback) ->
 simpleBuild = (afterCallback) ->
     console.time 'build'
     console.log c.green + 'Compiling coffee...'
-    coffee = spawn 'coffee', ['-c', '-j', 'webterminal.js', 'src/starting variables.coffee', 'src/helper functions.coffee', 'src/shell/', 'src/lang', 'src/prototype.coffee']
+    file = fs.createWriteStream 'webterminal.js', { defaultEncoding: 'utf8' }
+    cat = spawn 'cat', ['src/starting variables.coffee', 'src/helper functions.coffee'].concat(listCoffeeFiles('src/lang')).concat(listCoffeeFiles('src/shell')).concat(['src/prototype.coffee'])
+    coffee = spawn 'coffee', ['--compile', '--stdio']
+    cat.stdout.pipe coffee.stdin
+    coffee.stdout.pipe file
     coffee.stderr.on 'data', (data) ->
-        process.stderr.write c.red + data.toString()
-    coffee.stdout.on 'data', (data) ->
-        print c.green + data.toString()
+        process.stderr.write c.red + data.toString('utf8')
     coffee.on 'exit', (code) ->
         if code isnt 0
             console.log c.red + 'Build Error, see above fore more info.' + c.reset
             console.timeEnd 'build'
+            file.close()
             return null
         afterCallback()
 
