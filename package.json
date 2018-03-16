@@ -1,0 +1,40 @@
+{
+  "name": "webterminal",
+  "version": "0.0.1",
+  "description": "A terminal emulator for the web, for fun",
+  "main": "index.js",
+  "dependencies": {
+    "xterm": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^9.4.7",
+    "css-loader": "^0.28.10",
+    "jshint": "^2.9.5",
+    "style-loader": "^0.20.3",
+    "ts-loader": "^4.0.1",
+    "typescript": "^2.7.2",
+    "webpack": "^4.1.1",
+    "webpack-cli": "^2.0.12",
+    "webpack-dev-server": "^3.1.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server --colors --mode development",
+    "build": "webpack --colors --mode production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/melchor629/webterminal.js.git"
+  },
+  "keywords": [
+    "terminal",
+    "emulator",
+    "fun"
+  ],
+  "author": "melchor629",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/melchor629/webterminal.js/issues"
+  },
+  "homepage": "https://github.com/melchor629/webterminal.js#readme"
+}
