@@ -1,5 +1,6 @@
 import { Readable, Writable } from "stream";
 import { Command } from "./command";
+import { WebTerminal } from ".";
 
 export interface Shell {
     /**
@@ -27,6 +28,7 @@ export interface Shell {
     /**
      * WebTerminal notifies the shell that has been attached an can start doing its work.
      * In general, the shell should listen for `stdin` now.
+     * @param wt A WebTerminal reference
      */
-    attached(): void;
+    attached(wt: WebTerminal): void;
 };

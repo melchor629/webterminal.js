@@ -81,8 +81,10 @@ export class WebTerminal extends EventEmitter {
             }
         }
 
+        if(options['debug']) this.xterm.setOption('debug', true);
+
         this.xterm.open(this.elem);
-        this.shell.attached();
+        this.shell.attached(this);
     }
 
     public addCommand(...commands: Command[]) {
@@ -92,5 +94,10 @@ export class WebTerminal extends EventEmitter {
     public get stdin(): Readable { return this._stdin; }
     public get stdout(): Writable { return this._stdout; }
     public get stderr(): Writable { return this._stderr; }
+
+    public get cols(): number { return this.xterm.getOption('cols'); }
+    public get rows(): number { return this.xterm.getOption('rows'); }
+    public get col(): number { return this.xterm['buffer'].x; }
+    public get row(): number { return this.xterm['buffer'].y; }
 
 }

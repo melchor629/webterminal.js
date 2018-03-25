@@ -1,6 +1,7 @@
 import { Writable, Readable } from "stream";
 import { Shell } from "./shell";
 import { Command } from "./command";
+import { WebTerminal } from ".";
 
 export class BasicShell implements Shell {
     env: Map<String, String>;
@@ -11,6 +12,8 @@ export class BasicShell implements Shell {
 
     private history: string[];
     private lastStatusCode = 0;
+    private wt: WebTerminal;
+    private startColumn: number;
 
     constructor() {
         this.env = new Map();
@@ -18,7 +21,8 @@ export class BasicShell implements Shell {
         this.history = JSON.parse(window.localStorage.getItem('webterminal.js:bs:history') || '[]');
     }
 
-    attached() {
+    attached(wt: WebTerminal) {
+        this.wt = wt;
         this.process();
     }
 
@@ -67,24 +71,30 @@ export class BasicShell implements Shell {
                             if(cursor > 0) {
                                 if(cursor < line.length) {
                                     //Deleting in the middle of the line
-                                    line = line.substr(0, cursor) + line.substr(cursor + 1);
+                                    line = line.substr(0, cursor - 1) + line.substr(cursor);
+                                    this.moveCursorLeft();
+                                    this.stdout.write(`${line.substr(cursor - 1)} `);
+                                    this.moveCursorLeft(line.length - cursor + 2, true);
                                 } else {
                                     //Deleting at the end of the string
                                     line = line.substr(0, cursor - 1);
+                                    this.moveCursorLeft();
+                                    this.stdout.write(' ');
+                                    this.moveCursorLeft(1, true);
                                 }
-
                                 cursor--;
-                                this.moveCursorLeft(cursor + 1);
-                                this.stdout.write(`${line} `);
-                                this.moveCursorLeft(line.length - cursor + 1);
                             }
                         } else if(char >= 32) {
                             //Insert character where the cursor is
-                            line = line.substr(0, cursor) + String.fromCharCode(char) + line.substr(cursor);
+                            if(cursor === line.length) {
+                                line += String.fromCharCode(char);
+                                this.stdout.write(String.fromCharCode(char));
+                            } else {
+                                line = line.substr(0, cursor) + String.fromCharCode(char) + line.substr(cursor);
+                                this.stdout.write(line.substr(cursor));
+                                if(cursor < line.length) this.moveCursorLeft(line.length - cursor - 1, true);
+                            }
                             cursor++;
-                            if(cursor > 1) this.moveCursorLeft(cursor - 1);
-                            this.stdout.write(line);
-                            if(cursor < line.length) this.moveCursorLeft(line.length - cursor);
                         } else if(char === 10 || char === 13) { // \n
                             this.stdout.write('\r\n');
                             resolved(line);
@@ -161,6 +171,7 @@ export class BasicShell implements Shell {
                     }
                 }
             };
+            setTimeout(() => this.startColumn = this.wt.col);
             this.stdin.on('data', somethingThatWillBeCalled);
         });
     }
@@ -179,26 +190,58 @@ export class BasicShell implements Shell {
         }
     }
 
-    private moveCursorRight(num: number = 1) {
+    private moveCursorRight(num: number = 1, async: boolean = false) {
+        /*if(num > 0) {
+            let ups = Math.trunc(num / (this.wt.cols - this.startColumn));
+            let lefts = Math.max(num - Math.max(ups-1, 0) * this.wt.cols - this.startColumn, num);
+            if(ups !== 0) this.stdout.write(`\x1B[${ups}A`);
+            if(lefts !== 0) this.stdout.write(`\x1B[${num}C`);
+        }*/
+        if(async) return setTimeout(() => this.moveCursorRight(num));
         if(num > 0) this.stdout.write(`\x1B[${num}C`);
     }
 
-    private moveCursorLeft(num: number = 1) {
-        if(num > 0) this.stdout.write(`\x1B[${num}D`);
+    private moveCursorLeft(num: number = 1, async: boolean = false) {
+        /*if(num > 0) {
+            let freeCols = this.wt.cols - this.startColumn;
+            let ups = Math.trunc((num-1) / freeCols);
+            let lefts = num < freeCols ? num : num - Math.max(ups-1, 0) * this.wt.cols - freeCols;
+            if(lefts === freeCols - 1) {
+                lefts--;
+            }
+            console.log(`UP ${ups} - LEFT ${lefts}`);
+            if(ups !== 0) this.stdout.write(`\x1B[${ups}A`);
+            if(lefts !== 0) this.stdout.write(`\x1B[${num}D`);
+        }*/
+        if(async) return setTimeout(() => this.moveCursorLeft(num));
+        if(num > 0) {
+            if(this.wt.col === 0 && this.wt.row > 0) {
+                console.log(`UP 1 - RIGHT ${this.wt.cols} - LEFT ${num - 1}`);
+                if(num > 1) this.stdout.write(`\x1B[1A\x1B[${this.wt.cols}C\x1B[${num - 1}D`);
+                else this.stdout.write(`\x1B[1A\x1B[${this.wt.cols}C`);
+            } else {
+                console.log(`LEFT ${num}`);
+                this.stdout.write(`\x1B[${num}D`);
+            }
+        }
     }
 
     private appendHistory(cmd: string) {
-        if(this.history.length > 100) {
-            this.history = this.history.slice(0, 99);
+        if(cmd) {
+            if(this.history.length > 100) {
+                this.history = this.history.slice(0, 99);
+            }
+            this.history.unshift(cmd);
+            window.localStorage.setItem('webterminal.js:bs:history', JSON.stringify(this.history));
         }
-        this.history.unshift(cmd);
-        window.localStorage.setItem('webterminal.js:bs:history', JSON.stringify(this.history));
     }
 
     private replaceHistory(pos: number, cmd: string) {
-        if(pos < 100 && pos < this.history.length) {
-            this.history[pos] = cmd;
-            window.localStorage.setItem('webterminal.js:bs:history', JSON.stringify(this.history));
+        if(cmd) {
+            if(pos < 100 && pos < this.history.length) {
+                this.history[pos] = cmd;
+                window.localStorage.setItem('webterminal.js:bs:history', JSON.stringify(this.history));
+            }
         }
     }
 
