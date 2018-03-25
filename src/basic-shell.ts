@@ -191,37 +191,40 @@ export class BasicShell implements Shell {
     }
 
     private moveCursorRight(num: number = 1, async: boolean = false) {
-        /*if(num > 0) {
-            let ups = Math.trunc(num / (this.wt.cols - this.startColumn));
-            let lefts = Math.max(num - Math.max(ups-1, 0) * this.wt.cols - this.startColumn, num);
-            if(ups !== 0) this.stdout.write(`\x1B[${ups}A`);
-            if(lefts !== 0) this.stdout.write(`\x1B[${num}C`);
-        }*/
         if(async) return setTimeout(() => this.moveCursorRight(num));
-        if(num > 0) this.stdout.write(`\x1B[${num}C`);
+        if(num > 0) {
+            console.log('RIGHT ' + num);
+            this.stdout.write(`\x1B[${num}C`);
+        }
     }
 
-    private moveCursorLeft(num: number = 1, async: boolean = false) {
-        /*if(num > 0) {
-            let freeCols = this.wt.cols - this.startColumn;
-            let ups = Math.trunc((num-1) / freeCols);
-            let lefts = num < freeCols ? num : num - Math.max(ups-1, 0) * this.wt.cols - freeCols;
-            if(lefts === freeCols - 1) {
-                lefts--;
-            }
-            console.log(`UP ${ups} - LEFT ${lefts}`);
-            if(ups !== 0) this.stdout.write(`\x1B[${ups}A`);
-            if(lefts !== 0) this.stdout.write(`\x1B[${num}D`);
-        }*/
+    private nopeLeft: boolean = false;
+    private moveCursorLeft(num: number = 1, async: boolean = false): any {
         if(async) return setTimeout(() => this.moveCursorLeft(num));
         if(num > 0) {
             if(this.wt.col === 0 && this.wt.row > 0) {
-                console.log(`UP 1 - RIGHT ${this.wt.cols} - LEFT ${num - 1}`);
-                if(num > 1) this.stdout.write(`\x1B[1A\x1B[${this.wt.cols}C\x1B[${num - 1}D`);
-                else this.stdout.write(`\x1B[1A\x1B[${this.wt.cols}C`);
+                console.log(`UP 1 - RIGHT ${this.wt.cols}`);
+                if(num > 1) {
+                    this.stdout.write(`\x1B[1A\x1B[${this.wt.cols}C`);
+                    this.moveCursorLeft(num, true);
+                } else this.stdout.write(`\x1B[1A\x1B[${this.wt.cols}C`);
+                this.nopeLeft = true;
             } else {
-                console.log(`LEFT ${num}`);
-                this.stdout.write(`\x1B[${num}D`);
+                if(this.wt.col === this.wt.cols && this.nopeLeft) {
+                    this.nopeLeft = false; 
+                } else {
+                    if(this.wt.col - num >= 0) {
+                        console.log(`LEFT ${num}`);
+                        this.stdout.write(`\x1B[${num}D`);
+                    } else {
+                        let up = 0;
+                        while(this.wt.col - num < 0) { up++; num -= this.wt.cols; }
+                        console.log(`UP ${up}`);
+                        this.stdout.write(`\x1B[${up}A`);
+                        if(num > 0) this.moveCursorLeft(num);
+                        else if(num < 0) this.moveCursorRight(-num);
+                    }
+                }
             }
         }
     }

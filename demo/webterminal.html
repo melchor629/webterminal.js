@@ -60,40 +60,31 @@
                     USER: 'melchor9000',
                     PS1: '\x1B[96m%u\x1B[0m%scc ->\x1B[0m '
                 },
-                commands: [
-                    {
-                        name: 'whoami',
-                        execute: proc => {
-                            proc.stdout.write(`Hello ${proc.env.get('USER') || 'anon'}\r\n`);
+                commands: {
+                    whoami: proc => {
+                        proc.stdout.write(`Hello ${proc.env.get('USER') || 'anon'}\r\n`);
+                    },
+                    help: proc => {
+                        proc.stdout.write('Sorry but I have no notion of  h e l p\r\n');
+                        return 1;
+                    },
+                    echo: (proc, ...args) => {
+                        for(let arg of args.splice(1)) {
+                            proc.stdout.write(`${arg} `);
+                        }
+                        proc.stdout.write('\r\n');
+                    },
+                    ls: (proc, cmd, dir) => {
+                        if(dir) {
+                            proc.stderr.write(`I'm sorry but I cannot find \`${dir}'\r\n`);
+                        } else {
+                            proc.stderr.write("I'm sorry, but I'm not real enough to execute this command\r\n");
                         }
                     },
-                    {
-                        name: 'help',
-                        execute: proc => {
-                            proc.stdout.write('Sorry but I have no notion of  h e l p\r\n');
-                            return 1;
-                        }
-                    },
-                    {
-                        name: 'echo',
-                        execute: (proc, ...args) => {
-                            for(let arg of args.splice(1)) {
-                                proc.stdout.write(`${arg} `);
-                            }
-                            proc.stdout.write('\r\n');
-                        }
-                    },
-                    {
-                        name: 'ls',
-                        execute: (proc, cmd, dir) => {
-                            if(dir) {
-                                proc.stderr.write(`I'm sorry but I cannot find \`${dir}'\r\n`);
-                            } else {
-                                proc.stderr.write("I'm sorry, but I'm not real enough to execute this command\r\n");
-                            }
-                        }
+                    env: proc => {
+                        proc.env.forEach((value, key) => proc.stdout.write(`${key}=${value}\r\n`));
                     }
-                ]
+                }
             });
         </script>
     </body>

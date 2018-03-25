@@ -52,7 +52,6 @@ export class WebTerminal extends EventEmitter {
         this.xterm = new Terminal(options);
         this.xterm.on('data', data => this._stdin.push(data));
         this.xterm.on('title', title => this.emit('title', title));
-        this.xterm.on('linefeed', () => console.log('linefeed?'));
         this.shell = options.shell || new BasicShell();
 
         //Prepare the shell with the corresponding references
@@ -76,8 +75,10 @@ export class WebTerminal extends EventEmitter {
         if(options.commands) {
             if(options.commands instanceof Map) {
                 options.commands.forEach((command, name) => this.commands.set(name, command));
-            } else {
+            } else if(Array.isArray(options.commands)) {
                 options.commands.forEach((command) => this.commands.set(command.name, command));
+            } else {
+                for(let name in options.commands) this.commands.set(name, { name, execute: options.commands[name] });
             }
         }
 
