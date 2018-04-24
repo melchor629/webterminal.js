@@ -23,6 +23,7 @@ export class BasicShell implements Shell {
 
     attached(wt: WebTerminal) {
         this.wt = wt;
+        this.wt.stdout.write('\x1B[?3l\x1B%G');
         this.process();
     }
 
@@ -62,8 +63,9 @@ export class BasicShell implements Shell {
                 resolve(s);
             };
             somethingThatWillBeCalled = (data: string | Buffer) => {
+                if(typeof data !== 'string') data = data.toString('utf-8');
                 for(let i = 0; i < data.length; i++) {
-                    let char = typeof data === 'string' ? data.charCodeAt(i) : data.readUInt8(i);
+                    let char = data.charCodeAt(i);
                     if(!escapeCode) {
                         if(char === 27) {
                             escapeCode = true;
@@ -71,16 +73,39 @@ export class BasicShell implements Shell {
                             if(cursor > 0) {
                                 if(cursor < line.length) {
                                     //Deleting in the middle of the line
-                                    line = line.substr(0, cursor - 1) + line.substr(cursor);
-                                    this.moveCursorLeft();
-                                    this.stdout.write(`${line.substr(cursor - 1)} `);
-                                    this.moveCursorLeft(line.length - cursor + 2, true);
+                                    if((this.wt.col % this.wt.cols) !== 0) {
+                                        line = line.substr(0, cursor - 1) + line.substr(cursor);
+                                        this.moveCursorLeft();
+                                        this.stdout.write(`${line.substr(cursor - 1)} `);
+                                        this.moveCursorLeft(line.length - cursor + 2, true);
+                                    } else {
+                                        const pre = line.substr(0, cursor - 1);
+                                        const post = line.substr(cursor);
+                                        line = pre + post;
+                                        let out = ''
+                                        out += `\x1B[A`;
+                                        for(let i = 0; i < this.wt.cols - 1; i++) out += '\x1B[C';
+                                        out += post.charAt(0) + post.charAt(1);
+                                        out += '\x1B[1P';
+                                        const count = Math.min(post.length - 3, this.wt.cols - 1);
+                                        out += post.substr(2, count);
+                                        out += '\x1B[A';
+                                        for(let i = 0; i < this.wt.cols - count; i++) out += '\x1B[C';
+                                        this.stdout.write(out);
+                                    }
                                 } else {
                                     //Deleting at the end of the string
                                     line = line.substr(0, cursor - 1);
-                                    this.moveCursorLeft();
-                                    this.stdout.write(' ');
-                                    this.moveCursorLeft(1, true);
+                                    if((this.wt.col % this.wt.cols) !== 0) {
+                                        this.stdout.write('\x08\x1B[K');
+                                    } else {
+                                        let out = ''
+                                        out += `\x1B[A`;
+                                        for(let i = 0; i < this.wt.cols; i++) out += '\x1B[C';
+                                        out += '\x1B[K\x0D\x0A\x0D\x1B[K\x1B[A'
+                                        for(let i = 0; i < this.wt.cols; i++) out += '\x1B[C';
+                                        this.stdout.write(out);
+                                    }
                                 }
                                 cursor--;
                             }
@@ -91,10 +116,15 @@ export class BasicShell implements Shell {
                                 this.stdout.write(String.fromCharCode(char));
                             } else {
                                 line = line.substr(0, cursor) + String.fromCharCode(char) + line.substr(cursor);
-                                this.stdout.write(line.substr(cursor));
-                                if(cursor < line.length) this.moveCursorLeft(line.length - cursor - 1, true);
+                                let out = line.substr(cursor);
+                                for(let i = cursor; i < line.length - 1; i++) out += '\x08';
+                                this.stdout.write(out);
                             }
                             cursor++;
+                            if(this.wt.col === this.wt.cols - 1) {
+                                //Cursor must appear in the next line right now
+                                this.moveCursorRight();
+                            }
                         } else if(char === 10 || char === 13) { // \n
                             this.stdout.write('\r\n');
                             resolved(line);
@@ -150,7 +180,7 @@ export class BasicShell implements Shell {
                                     //Move the cursor to the end of the command
                                     this.moveCursorLeft(a);
                                     //Replace the old history position
-                                    this.replaceHistory(history - 1, line);
+                                    this.replaceHistory(history + 1, line);
                                     //Change the line
                                     line = cmd;
                                 } else if(history === 0) {
@@ -193,8 +223,11 @@ export class BasicShell implements Shell {
     private moveCursorRight(num: number = 1, async: boolean = false) {
         if(async) return setTimeout(() => this.moveCursorRight(num));
         if(num > 0) {
-            console.log('RIGHT ' + num);
-            this.stdout.write(`\x1B[${num}C`);
+            if(this.wt.col === this.wt.cols - 1) {
+                this.stdout.write('\x0D\x0A\x0D');
+            } else {
+                this.stdout.write(`\x1B[${num}C`);
+            }
         }
     }
 
@@ -211,7 +244,7 @@ export class BasicShell implements Shell {
                 this.nopeLeft = true;
             } else {
                 if(this.wt.col === this.wt.cols && this.nopeLeft) {
-                    this.nopeLeft = false; 
+                    this.nopeLeft = false;
                 } else {
                     if(this.wt.col - num >= 0) {
                         console.log(`LEFT ${num}`);

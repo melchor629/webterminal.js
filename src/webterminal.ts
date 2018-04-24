@@ -5,6 +5,7 @@ import { Command } from './command';
 import { Shell } from './shell';
 import { BasicShell } from './basic-shell';
 import '../node_modules/xterm/dist/xterm.css';
+import { WSShell } from './ws-shell';
 
 //https://github.com/xtermjs/xterm.js
 
@@ -52,7 +53,7 @@ export class WebTerminal extends EventEmitter {
         this.xterm = new Terminal(options);
         this.xterm.on('data', data => this._stdin.push(data));
         this.xterm.on('title', title => this.emit('title', title));
-        this.shell = options.shell || new BasicShell();
+        this.shell = options.shell || new BasicShell() || new WSShell('localhost:8088', false);
 
         //Prepare the shell with the corresponding references
         this.shell.commands = () => this.commands;
