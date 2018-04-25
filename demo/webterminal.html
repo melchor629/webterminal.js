@@ -56,10 +56,6 @@
                     "brightCyan": "#10F7DE",
                     "brightWhite": "#f6cab8"
                 },
-                env: {
-                    USER: 'melchor9000',
-                    PS1: '\x1B[96m%u\x1B[0m%scc ->\x1B[0m '
-                },
                 commands: {
                     whoami: proc => {
                         proc.stdout.write(`Hello ${proc.env.get('USER') || 'anon'}\r\n`);
@@ -86,6 +82,30 @@
                     }
                 }
             });
+            if(false) {
+                (async function() {
+                    try {
+                        let res = await fetch(`http://localhost:8088?cols=${term.cols}&rows=${term.rows}`);
+                        const pid = await res.text();
+                        term.attach(new WebTerminal.WSShell({ url: `localhost:8088/${pid}`, secure: false }));
+                    } catch(e) {
+                        console.error(e);
+                        term.attach(new WebTerminal.BasicShell({
+                            env: {
+                                USER: 'melchor9000',
+                                PS1: '\x1B[96m%u\x1B[0m%scc ->\x1B[0m '
+                            }
+                        }));
+                    }
+                })();
+            } else {
+                term.attach(new WebTerminal.BasicShell({
+                    env: {
+                        USER: 'melchor9000',
+                        PS1: '\x1B[96m%u\x1B[0m%scc ->\x1B[0m '
+                    }
+                }));
+            }
         </script>
     </body>
 </html>

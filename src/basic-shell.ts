@@ -1,22 +1,22 @@
 import { Writable, Readable } from "stream";
-import { Shell } from "./shell";
+import { Shell, ShellOptions } from "./shell";
 import { Command } from "./command";
 import { WebTerminal } from ".";
 
-export class BasicShell implements Shell {
+export class BasicShell extends Shell {
     env: Map<String, String>;
-    stdout: Writable;
-    stderr: Writable;
-    stdin: Readable;
     commands: () => Map<String, Command>;
 
+    private stdout: Writable;
+    private stderr: Writable;
+    private stdin: Readable;
     private history: string[];
     private lastStatusCode = 0;
     private wt: WebTerminal;
     private startColumn: number;
 
-    constructor() {
-        this.env = new Map();
+    constructor(options: ShellOptions) {
+        super(options);
         this.env.set('SHELL', '/bin/basic-shell');
         this.history = JSON.parse(window.localStorage.getItem('webterminal.js:bs:history') || '[]');
     }
@@ -24,6 +24,9 @@ export class BasicShell implements Shell {
     attached(wt: WebTerminal) {
         this.wt = wt;
         this.wt.stdout.write('\x1B[?3l\x1B%G');
+        this.stdout = this.wt.stdout;
+        this.stdin = this.wt.stdin;
+        this.stderr = this.wt.stderr;
         this.process();
     }
 
@@ -236,7 +239,6 @@ export class BasicShell implements Shell {
         if(async) return setTimeout(() => this.moveCursorLeft(num));
         if(num > 0) {
             if(this.wt.col === 0 && this.wt.row > 0) {
-                console.log(`UP 1 - RIGHT ${this.wt.cols}`);
                 if(num > 1) {
                     this.stdout.write(`\x1B[1A\x1B[${this.wt.cols}C`);
                     this.moveCursorLeft(num, true);
@@ -247,12 +249,10 @@ export class BasicShell implements Shell {
                     this.nopeLeft = false;
                 } else {
                     if(this.wt.col - num >= 0) {
-                        console.log(`LEFT ${num}`);
                         this.stdout.write(`\x1B[${num}D`);
                     } else {
                         let up = 0;
                         while(this.wt.col - num < 0) { up++; num -= this.wt.cols; }
-                        console.log(`UP ${up}`);
                         this.stdout.write(`\x1B[${up}A`);
                         if(num > 0) this.moveCursorLeft(num);
                         else if(num < 0) this.moveCursorRight(-num);
@@ -282,15 +282,44 @@ export class BasicShell implements Shell {
     }
 
     private parseLine(line: string): string[] {
-        //TODO Better parser, right how something like: \"jaj\" is not possible
-        let args: string[] = line.match(/([^ "']+|".{1,}?"|'.{1,}?')/g);
+        line = line.trim() + ' ';
+        let args: string[] = [];
+        let comillas: string | null = null;
+        let startPos = 0, currentPos = 0;
+        let ignoreNext = false;
+        while(currentPos < line.length) {
+            const char = line[currentPos];
+            let deleteChar = false;
+            if(ignoreNext) {
+                ignoreNext = false;
+            } else if(char === '\\') {
+                deleteChar = true;
+                ignoreNext = true;
+            } else if(char === '"' && comillas === '"') {
+                deleteChar = true;
+                comillas = null;
+            } else if(char === "'" && comillas === "'") {
+                deleteChar = true;
+                comillas = null;
+            } else if((char === '"' || char === "'") && comillas === null) {
+                comillas = char;
+                startPos = currentPos + 1;
+            } else if(char === ' ' && comillas === null) {
+                args.push(line.substring(startPos, currentPos).trim());
+                startPos = currentPos;
+            }
+
+            if(deleteChar) {
+                line = line.substr(0, currentPos) + line.substr(currentPos + 1);
+            } else {
+                currentPos++;
+            }
+        }
+
         for(let i = 0; i < args.length; i++) {
-            if(args[i].charAt(0) === '"' || args[i].charAt(0) === "'") args[i] = args[i].substring(1, args[i].length - 1);
-            if(args[i].charAt(0) !== "'") {
-                const vars = args[i].match(/\$([a-zA-Z][a-zA-Z0-9_\-]+)/g);
-                for(let o = 0; o < (vars ? vars.length : 0); o++) {
-                    args[i] = args[i].replace(vars[o], <string>this.env.get(vars[o].substr(1)) || '');
-                }
+            const vars = args[i].match(/\$([a-zA-Z][a-zA-Z0-9_\-]+)/g);
+            for(let o = 0; o < (vars ? vars.length : 0); o++) {
+                args[i] = args[i].replace(vars[o], <string>this.env.get(vars[o].substr(1)) || '');
             }
         }
         return args;

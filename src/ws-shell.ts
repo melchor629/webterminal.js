@@ -1,25 +1,29 @@
 import { Shell, Command, WebTerminal } from ".";
 import { Writable, Readable } from "stream";
+import { ShellOptions } from "./shell";
 
-export class WSShell implements Shell {
-    env: Map<String, String> = new Map();
-    stdout: Writable;
-    stderr: Writable;
-    stdin: Readable;
+export class WSShell extends Shell {
+    env: Map<String, String>;
     commands: () => Map<String, Command>;
 
+    private url: string;
+    private secure: boolean;
     private ws: WebSocket;
     private received = Buffer.alloc(1, 0);
 
-    constructor(private url: string, private secure: boolean = true) {}
+    constructor(options: ShellOptions & { url: string, secure?: boolean }) {
+        super(options);
+        this.url = options.url;
+        this.secure = options.secure !== undefined ? !!options.secure! : true;
+    }
 
     async attached(wt: WebTerminal) {
         this.ws = new WebSocket(`${this.secure ? 'wss' : 'ws'}://${this.url}/`);
         this.ws.addEventListener('message', (ev) => {
-            this.stdout.write(ev.data);
+            wt.stdout.write(ev.data);
             this.received = Buffer.concat([this.received, new Buffer(ev.data)]);
         });
-        this.stdin.on('data', data => this.ws.send(data));
+        wt.stdin.on('data', data => this.ws.send(data));
         wt.on('resize', () => {
             const headers = new Headers();
             headers.append('Content-Type', 'application/json');

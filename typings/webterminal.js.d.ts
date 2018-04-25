@@ -7,16 +7,7 @@ declare module 'webterminal.js' {
         /**
          * An array or Map of commands to add initially.
          */
-        commands?: Command[] | Map<String, Command>,
-        /**
-         * The shell to be used. If null, will use BasicShell.
-         */
-        shell?: Shell,
-        /**
-         * Extra environment variables. You can add `$USER` and modify `$PS1`.
-         * For `$PS1`, see the shell documentation about formatting.
-         */
-        env?: Map<String, String> | any
+        commands?: Command[] | Map<String, Command>;
     }
 
     /**
@@ -25,6 +16,7 @@ declare module 'webterminal.js' {
     class WebTerminal extends EventEmitter {
         constructor(elem: HTMLElement, options: WebTerminalOptions);
         addCommand(...commands: Command[]): void;
+        attach(shell: Shell): void;
         stdin: Readable;
         stdout: Writable;
         stderr: Writable;
@@ -42,25 +34,21 @@ declare module 'webterminal.js' {
         execute(proc: CommandEnv, ...args: string[]): number;
     }
 
-    interface Shell {
+    export interface ShellOptions {
+        /**
+         * Extra environment variables. You can add `$USER` and modify `$PS1`.
+         * For `$PS1`, see the shell documentation about formatting.
+         */
+        env?: Map<String, String> | any;
+    }
+
+    abstract class Shell {
         /**
          * The environment variables that will hold the shell, which the subprocesses will inherit.
          * The constructor of the shell must initialize the variable. The terminal will add the
          * following variables: COLORTERM, TERM, LOCALE, LC_CTYPE. You should add, at least SHELL.
          */
         env: Map<String, String>;
-        /**
-         * A reference to the terminal's `stdout`
-         */
-        stdout: Writable;
-        /**
-         * A reference to the terminal's `stderr`
-         */
-        stderr: Writable;
-        /**
-         * A reference to the terminal's `stdin`
-         */
-        stdin: Readable;
         /**
          * A getter to obtain the current commands added to WebTerminal
          */
@@ -70,40 +58,14 @@ declare module 'webterminal.js' {
          * In general, the shell should listen for `stdin` now.
          */
         attached(): void;
+
+        constructor(options: ShellOptions);
     }
 
     /**
      * xD
      */
-    class BasicShell implements Shell {
-        /**
-         * The environment variables that will hold the shell, which the subprocesses will inherit.
-         * The constructor of the shell must initialize the variable. The terminal will add the
-         * following variables: COLORTERM, TERM, LOCALE, LC_CTYPE. You should add, at least SHELL.
-         */
-        env: Map<String, String>;
-        /**
-         * A reference to the terminal's `stdout`
-         */
-        stdout: Writable;
-        /**
-         * A reference to the terminal's `stderr`
-         */
-        stderr: Writable;
-        /**
-         * A reference to the terminal's `stdin`
-         */
-        stdin: Readable;
-        /**
-         * A getter to obtain the current commands added to WebTerminal
-         */
-        commands: () => Map<String, Command>;
-        /**
-         * WebTerminal notifies the shell that has been attached an can start doing its work.
-         * In general, the shell should listen for `stdin` now.
-         */
-        attached(): void;
-    }
+    class BasicShell extends Shell {}
 
     /**
      * Shell that connects to an API and a WebSocket to redirect all the user's input to a shell hosted
@@ -117,40 +79,12 @@ declare module 'webterminal.js' {
      * It's up to you the way the shell is created, but when it's created, pass a valid URL to WSShel and
      * create the terminal.
      */
-    class WSShell implements Shell {
-        /**
-         * The environment variables that will hold the shell, which the subprocesses will inherit.
-         * The constructor of the shell must initialize the variable. The terminal will add the
-         * following variables: COLORTERM, TERM, LOCALE, LC_CTYPE. You should add, at least SHELL.
-         */
-        env: Map<String, String>;
-        /**
-         * A reference to the terminal's `stdout`
-         */
-        stdout: Writable;
-        /**
-         * A reference to the terminal's `stderr`
-         */
-        stderr: Writable;
-        /**
-         * A reference to the terminal's `stdin`
-         */
-        stdin: Readable;
-        /**
-         * A getter to obtain the current commands added to WebTerminal
-         */
-        commands: () => Map<String, Command>;
-        /**
-         * WebTerminal notifies the shell that has been attached an can start doing its work.
-         * In general, the shell should listen for `stdin` now.
-         */
-        attached(): void;
-
+    class WSShell extends Shell {
         /**
          * Creates a new shell that will connect to a WebSocket where a shell can be found.
          * @param url The URL (without http or https) to the server where the API is found
          * @param secure True to use HTTPS, false to use HTTP. Set true by default.
          */
-        constructor(url: string, secure: boolean);
+        constructor(options: ShellOptions & { url: string, secure?: boolean });
     }
 }
