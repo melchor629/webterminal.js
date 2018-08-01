@@ -75,7 +75,7 @@ export class WebTerminal extends EventEmitter {
         this.shell.env.set('LANG', `${navigator.language || navigator['userLanguage']}.UTF-8`);
         this.shell.env.set('LC_CTYPE', this.shell.env.get('LANG'));
 
-        this.shell.attached(this);console.log(this.xterm);
+        this.shell.attached(this);
     }
 
     public get stdin(): Readable { return this._stdin; }
