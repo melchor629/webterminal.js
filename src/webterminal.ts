@@ -3,11 +3,11 @@ import { EventEmitter } from 'events';
 import { Readable, Writable } from 'stream';
 import { Command } from './command';
 import { Shell } from './shell';
-import { BasicShell } from './basic-shell';
 import '../node_modules/xterm/dist/xterm.css';
-import { WSShell } from './ws-shell';
+const WebfontLoader = require('xterm-webfont');
 
 //https://github.com/xtermjs/xterm.js
+Terminal.applyAddon(WebfontLoader);
 
 const outWriteImpl = function(chunk: string | Buffer, encoding: string, callback: Function) {
     if(typeof chunk === 'string') {
@@ -51,13 +51,13 @@ export class WebTerminal extends EventEmitter {
             } else if(Array.isArray(options.commands)) {
                 options.commands.forEach((command) => this.commands.set(command.name, command));
             } else {
-                for(let name in options.commands) this.commands.set(name, { name, execute: options.commands[name] });
+                for(let name in (options.commands as any)) this.commands.set(name, { name, execute: options.commands[name] });
             }
         }
 
         if(options['debug']) this.xterm.setOption('debug', true);
 
-        this.xterm.open(this.elem);
+        this.xterm['loadWebfontAndOpen'](this.elem);
     }
 
     public addCommand(...commands: Command[]) {
@@ -75,7 +75,7 @@ export class WebTerminal extends EventEmitter {
         this.shell.env.set('LANG', `${navigator.language || navigator['userLanguage']}.UTF-8`);
         this.shell.env.set('LC_CTYPE', this.shell.env.get('LANG'));
 
-        this.shell.attached(this);
+        this.shell.attached(this);console.log(this.xterm);
     }
 
     public get stdin(): Readable { return this._stdin; }
@@ -84,7 +84,7 @@ export class WebTerminal extends EventEmitter {
 
     public get cols(): number { return this.xterm.getOption('cols'); }
     public get rows(): number { return this.xterm.getOption('rows'); }
-    public get col(): number { return this.xterm['buffer'].x; }
-    public get row(): number { return this.xterm['buffer'].y; }
+    public get col(): number { return this.xterm['_core'].buffers.active.x; }
+    public get row(): number { return this.xterm['_core'].buffers.active.y; }
 
 }
